@@ -1,6 +1,9 @@
+use std::collections::BTreeMap;
+
 use chrono::{DateTime, Utc};
 use fn_error_context::context;
 use lumeo_pipeline::Pipeline;
+use reqwest::Method;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use uuid::Uuid;
@@ -19,6 +22,24 @@ pub struct Deployment {
     #[serde(with = "crate::util::json_string")]
     pub definition: Pipeline,
 }
+
+#[derive(Serialize)]
+pub struct NewDeployment {
+    pub pipeline_id: Uuid,
+    pub device_id: Uuid,
+    #[serde(flatten)]
+    pub data: DeploymentData,
+}
+
+#[derive(Serialize)]
+pub struct DeploymentData {
+    pub name: Option<String>,
+    pub state: Option<State>,
+    pub definition: Option<String>,
+    pub configuration: Option<DeploymentConfiguration>,
+}
+
+pub type DeploymentConfiguration = BTreeMap<String, serde_json::Map<String, serde_json::Value>>;
 
 #[derive(Debug, Deserialize, Serialize, strum::AsRefStr)]
 #[serde(rename_all = "lowercase")]
@@ -56,14 +77,57 @@ pub struct ListParams {
 impl Client {
     #[context("Getting deployments")]
     pub async fn get_deployments(&self, filter: &ListParams) -> anyhow::Result<Vec<Deployment>> {
-        let path =
-            format!("/v1/apps/{}/deployments?new_def_field_name=true", self.application_id()?);
+        let path = format!("/v1/apps/{}/deployments", self.application_id()?);
         self.get(&path, Some(&filter)).await
+    }
+
+    #[context("Creating deployment")]
+    pub async fn create_deployment(&self, data: &NewDeployment) -> anyhow::Result<Deployment> {
+        let path = format!("/v1/apps/{}/deployments", self.application_id()?);
+        self.post(&path, data).await
+    }
+
+    // FIXME: Make method naming consistent for all methods. It is either create/read/update/delete
+    //        or post/get/put/delete.
+    #[context("Getting deployment {}", id)]
+    pub async fn get_deployment(&self, id: Uuid) -> anyhow::Result<Deployment> {
+        let path = format!("/v1/apps/{}/deployments/{}", self.application_id()?, id);
+        self.get(&path, None::<&()>).await
+    }
+
+    #[context("Updating deployment {}", id)]
+    pub async fn update_deployment(
+        &self,
+        id: Uuid,
+        data: &DeploymentData,
+    ) -> anyhow::Result<Deployment> {
+        let path = format!("/v1/apps/{}/deployments/{}", self.application_id()?, id);
+        self.put(&path, data).await
+    }
+
+    #[context("Deleting deployment {}", id)]
+    pub async fn delete_deployment(&self, id: Uuid) -> anyhow::Result<()> {
+        let path = format!("/v1/apps/{}/deployments/{}", self.application_id()?, id);
+        self.delete(&path).await
     }
 
     #[context("Getting pipeline for deployment {}", id)]
     pub async fn get_deployment_definition(&self, id: Uuid) -> anyhow::Result<Pipeline> {
         let path = format!("/v1/apps/{}/deployments/{}/definition", self.application_id()?, id);
         self.get(&path, None::<&()>).await
+    }
+
+    #[context("Starting deployment {}", id)]
+    pub async fn start_deployment(&self, id: Uuid) -> anyhow::Result<()> {
+        let path = format!("/v1/apps/{}/deployments/{}/start", self.application_id()?, id);
+        self.request(Method::POST, &path, None)?.send().await?.error_for_status()?;
+        Ok(())
+    }
+
+    #[context("Stopping deployment {}", id)]
+    pub async fn stop_deployment(&self, id: Uuid) -> anyhow::Result<()> {
+        let path = format!("/v1/apps/{}/deployments/{}/stop", self.application_id()?, id);
+        self.request(Method::POST, &path, None)?.send().await?.error_for_status()?;
+        Ok(())
     }
 }
