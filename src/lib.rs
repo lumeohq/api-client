@@ -75,6 +75,22 @@ impl Client {
             .await?)
     }
 
+    #[context("Put {}", path)]
+    pub async fn put<T, R>(&self, path: &str, body: &R) -> anyhow::Result<T>
+    where
+        R: Serialize,
+        T: DeserializeOwned,
+    {
+        Ok(self
+            .request(Method::PUT, path, None)?
+            .json(body)
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await?)
+    }
+
     #[context("Put without deserializing response {}", path)]
     pub async fn put_without_response_deserialization<R>(
         &self,
