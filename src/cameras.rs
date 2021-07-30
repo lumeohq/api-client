@@ -57,7 +57,6 @@ pub struct Camera {
     pub snapshot_file_id: Option<Uuid>,
 }
 
-
 #[derive(Debug, Deserialize)]
 pub struct DevicesCamera {
     pub id: Uuid,
