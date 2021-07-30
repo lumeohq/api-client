@@ -56,8 +56,7 @@ pub struct ListParams {
 impl Client {
     #[context("Getting deployments")]
     pub async fn get_deployments(&self, filter: &ListParams) -> anyhow::Result<Vec<Deployment>> {
-        let path =
-            format!("/v1/apps/{}/deployments?new_def_field_name=true", self.application_id()?);
+        let path = format!("/v1/apps/{}/deployments", self.application_id()?);
         self.get(&path, Some(&filter)).await
     }
 
