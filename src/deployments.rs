@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use fn_error_context::context;
 use lumeo_pipeline::Pipeline;
+use reqwest::Method;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use uuid::Uuid;
@@ -64,5 +65,19 @@ impl Client {
     pub async fn get_deployment_definition(&self, id: Uuid) -> anyhow::Result<Pipeline> {
         let path = format!("/v1/apps/{}/deployments/{}/definition", self.application_id()?, id);
         self.get(&path, None::<&()>).await
+    }
+
+    #[context("Starting deployment {}", id)]
+    pub async fn start_deployment(&self, id: Uuid) -> anyhow::Result<()> {
+        let path = format!("/v1/apps/{}/deployments/{}/start", self.application_id()?, id);
+        self.request(Method::POST, &path, None)?.send().await?.error_for_status()?;
+        Ok(())
+    }
+
+    #[context("Stopping deployment {}", id)]
+    pub async fn stop_deployment(&self, id: Uuid) -> anyhow::Result<()> {
+        let path = format!("/v1/apps/{}/deployments/{}/stop", self.application_id()?, id);
+        self.request(Method::POST, &path, None)?.send().await?.error_for_status()?;
+        Ok(())
     }
 }
