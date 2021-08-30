@@ -13,9 +13,9 @@ fn-error-context = "0.2.0"
 log = "0.4.14"
 log-derive = "0.4.1"
 # FIXME: figure out if we can remove `lumeo-types-rs` dependency
-lumeo-events = { git = "https://github.com/lumeohq/lumeo-types-rs", rev = "9c72980" }
-lumeo-pipeline = { git = "https://github.com/lumeohq/lumeo-types-rs", rev = "9c72980" }
-lumeo-commands = { git = "https://github.com/lumeohq/lumeo-types-rs", rev = "9c72980" }
+lumeo-events = { git = "https://github.com/lumeohq/lumeo-types-rs", rev = "1aabeca" }
+lumeo-pipeline = { git = "https://github.com/lumeohq/lumeo-types-rs", rev = "1aabeca" }
+lumeo-commands = { git = "https://github.com/lumeohq/lumeo-types-rs", rev = "1aabeca" }
 reqwest = { version = "0.11.4", default-features = false, features = ["json", "rustls-tls", "stream"] }
 serde = { version = "1.0.126", features = ["derive"] }
 serde_json = "1.0.64"
