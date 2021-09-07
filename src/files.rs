@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use fn_error_context::context;
 use serde::{Deserialize, Serialize};
+use url::Url;
 use uuid::Uuid;
 
 use super::Client;
@@ -44,6 +45,8 @@ pub struct File {
     pub deployment_id: Option<Uuid>,
     pub camera_id: Option<Uuid>,
     pub stream_id: Option<Uuid>,
+    pub data_url: Option<Url>,
+    pub metadata_url: Option<Url>,
 }
 
 #[derive(Debug, Default, Serialize)]
