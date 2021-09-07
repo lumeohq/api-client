@@ -49,23 +49,23 @@ pub struct File {
 #[derive(Debug, Serialize)]
 pub struct ListParams {
     /// Maximum number of files to return
-    limit: i16,
+    pub limit: i16,
     /// Filter: Lower bound for creation time (inclusive)
-    created_ts_since: Option<DateTime<Utc>>,
+    pub created_ts_since: Option<DateTime<Utc>>,
     /// Filter: Upper bound for creation time (exclusive)
-    created_ts_until: Option<DateTime<Utc>>,
+    pub created_ts_until: Option<DateTime<Utc>>,
     /// Filter: Node ID(s)
-    node_ids: Vec<String>,
+    pub node_ids: Vec<String>,
     /// Filter: Deployment ID(s)
-    deployment_ids: Vec<Uuid>,
+    pub deployment_ids: Vec<Uuid>,
     /// Filter: Camera ID(s)
-    camera_ids: Vec<Uuid>,
+    pub camera_ids: Vec<Uuid>,
     /// Filter: Stream ID(s)
-    stream_ids: Vec<Uuid>,
+    pub stream_ids: Vec<Uuid>,
     /// Filter: Gateway ID(s)
-    device_ids: Vec<Uuid>,
+    pub device_ids: Vec<Uuid>,
     /// Filter: Pipeline ID(s)
-    pipeline_ids: Vec<Uuid>,
+    pub pipeline_ids: Vec<Uuid>,
 }
 
 impl Client {
