@@ -46,7 +46,7 @@ pub struct File {
     pub stream_id: Option<Uuid>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Default, Serialize)]
 pub struct ListParams {
     /// Maximum number of files to return
     pub limit: i16,
