@@ -70,7 +70,7 @@ pub struct ListParams {
 
 impl Client {
     #[context("Listing files")]
-    pub async fn list_files(&self, params: Option<&ListParams>) -> anyhow::Result<()> {
+    pub async fn list_files(&self, params: Option<&ListParams>) -> anyhow::Result<Vec<File>> {
         self.get(&format!("/v1/apps/{}/files", self.application_id()?), params).await
     }
 
