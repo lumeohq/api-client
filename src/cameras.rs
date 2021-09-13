@@ -147,7 +147,7 @@ impl From<&DiscoveredCamera> for CameraData {
                 uri: Some(camera.uri.clone()),
                 ip_local: camera.ip_local.clone(),
                 ip_ext: None,
-                mac_address: camera.mac_address.clone(),
+                mac_address: Some(camera.mac_address.clone()),
                 username: None,
                 password: None,
                 configuration: None,
