@@ -9,7 +9,7 @@ use uuid::Uuid;
 
 use super::Client;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Copy, Eq, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Severity {
     Error,

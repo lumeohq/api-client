@@ -41,7 +41,7 @@ pub struct DeploymentData {
 
 pub type DeploymentConfiguration = BTreeMap<String, serde_json::Map<String, serde_json::Value>>;
 
-#[derive(Debug, Deserialize, Serialize, strum::AsRefStr)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize, Serialize, strum::AsRefStr)]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum State {
