@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use super::Client;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum FileCloudStatus {
     Disabled,
