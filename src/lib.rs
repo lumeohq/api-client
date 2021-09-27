@@ -15,8 +15,6 @@ pub mod orgs;
 pub mod snapshots;
 pub mod streams;
 
-mod util;
-
 pub struct Client {
     http_client: reqwest::Client,
     base_url: String,

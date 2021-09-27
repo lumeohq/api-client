@@ -1,10 +1,13 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, fmt};
 
 use chrono::{DateTime, Utc};
 use fn_error_context::context;
 use lumeo_pipeline::Pipeline;
 use reqwest::Method;
-use serde::{Deserialize, Serialize};
+use serde::{
+    de::{self, value::SeqAccessDeserializer, Deserializer, Visitor},
+    Deserialize, Serialize,
+};
 use serde_with::skip_serializing_none;
 use uuid::Uuid;
 
@@ -19,7 +22,7 @@ pub struct Deployment {
     pub pipeline_id: Uuid,
     pub device_id: Uuid,
     pub state: State,
-    #[serde(with = "crate::util::json_string")]
+    #[serde(deserialize_with = "deserialize_pipeline_def")]
     pub definition: Pipeline,
 }
 
@@ -130,4 +133,35 @@ impl Client {
         self.request(Method::POST, &path, None)?.send().await?.error_for_status()?;
         Ok(())
     }
+}
+
+fn deserialize_pipeline_def<'de, D>(deserializer: D) -> Result<Pipeline, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    struct PipelineVisitor;
+
+    impl<'de> Visitor<'de> for PipelineVisitor {
+        type Value = Pipeline;
+
+        fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            write!(f, "a possibly-stringified pipeline definition")
+        }
+
+        fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            serde_json::from_str(v).map_err(de::Error::custom)
+        }
+
+        fn visit_seq<A>(self, seq: A) -> Result<Self::Value, A::Error>
+        where
+            A: de::SeqAccess<'de>,
+        {
+            Pipeline::deserialize(SeqAccessDeserializer::new(seq))
+        }
+    }
+
+    deserializer.deserialize_any(PipelineVisitor)
 }
