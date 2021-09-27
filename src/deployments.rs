@@ -165,3 +165,67 @@ where
 
     deserializer.deserialize_any(PipelineVisitor)
 }
+
+#[cfg(test)]
+mod tests {
+    use chrono::Utc;
+    use lumeo_pipeline::Pipeline;
+    use serde::Serialize;
+    use serde_json::json;
+    use uuid::Uuid;
+
+    use super::{Deployment, State};
+
+    #[test]
+    fn deserialize_deployment() {
+        let pipeline_json = json!([{
+            "id": "video1",
+            "properties": {
+                "type": "video",
+                "source_type": "stream",
+                "source_id": Uuid::nil(),
+                "resolution": "1280x720",
+                "rtsp": { "name": "Video Name", "uri": "https://example.com/somevideo.mp4" },
+            },
+            "wires": {},
+        }]);
+        let pipeline_json_s = serde_json::to_string(&pipeline_json).unwrap();
+
+        let pipeline: Pipeline = serde_json::from_value(pipeline_json.clone()).unwrap();
+
+        let timestamp = Utc::now();
+
+        let deployment: Deployment = serde_json::from_value(json!({
+            "id": Uuid::nil(),
+            "created_at": timestamp,
+            "updated_at": timestamp,
+            "pipeline_id": Uuid::nil(),
+            "device_id": Uuid::nil(),
+            "state": State::Stopped,
+            // "Inlined" pipeline definition (array, not string)
+            "definition": pipeline_json,
+        }))
+        .unwrap();
+        assert_eq_json(&deployment.definition, &pipeline);
+
+        let deployment: Deployment = serde_json::from_value(json!({
+            "id": Uuid::nil(),
+            "created_at": timestamp,
+            "updated_at": timestamp,
+            "pipeline_id": Uuid::nil(),
+            "device_id": Uuid::nil(),
+            "state": State::Stopped,
+            // Stringified pipeline definition
+            "definition": pipeline_json_s,
+        }))
+        .unwrap();
+        assert_eq_json(&deployment.definition, &pipeline);
+    }
+
+    fn assert_eq_json<T: Serialize>(a: &T, b: &T) {
+        let a_json = serde_json::to_string(a).unwrap();
+        let b_json = serde_json::to_string(b).unwrap();
+
+        assert_eq!(a_json, b_json);
+    }
+}
