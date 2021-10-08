@@ -2,7 +2,6 @@
 name = "lumeo-api-client"
 version = "0.1.0"
 edition = "2018"
-authors = ["Dmitry Samoylov <dmitry.samoylov@quantumsoft.ru>"]
 description = "Lumeo API client"
 publish = false
 
