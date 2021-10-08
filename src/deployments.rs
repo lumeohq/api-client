@@ -20,7 +20,8 @@ pub struct Deployment {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
     pub pipeline_id: Uuid,
-    pub device_id: Uuid,
+    #[serde(rename = "device_id")]
+    pub gateway_id: Uuid,
     pub state: State,
     #[serde(deserialize_with = "deserialize_pipeline_def")]
     pub definition: Pipeline,
@@ -29,7 +30,8 @@ pub struct Deployment {
 #[derive(Serialize)]
 pub struct NewDeployment {
     pub pipeline_id: Uuid,
-    pub device_id: Uuid,
+    #[serde(rename = "device_id")]
+    pub gateway_id: Uuid,
     #[serde(flatten)]
     pub data: DeploymentData,
 }
@@ -72,7 +74,8 @@ pub struct ListParams {
     /// Filter: Pipeline ID(s)
     pub pipeline_ids: Vec<Uuid>,
     /// Filter: Device ID(s)
-    pub device_ids: Vec<Uuid>,
+    #[serde(rename = "device_ids")]
+    pub gateway_ids: Vec<Uuid>,
     /// Filter: State(s)
     pub states: Vec<State>,
 }

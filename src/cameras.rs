@@ -60,7 +60,8 @@ pub struct Camera {
 #[derive(Debug, Deserialize)]
 pub struct DevicesCamera {
     pub id: Uuid,
-    pub device_id: Uuid,
+    #[serde(rename = "device_id")]
+    pub gateway_id: Uuid,
     pub camera_id: Uuid,
 }
 
@@ -96,7 +97,7 @@ impl Client {
             &format!(
                 "/v1/apps/{}/devices/{}/cameras_statuses",
                 self.application_id()?,
-                self.device_id()?
+                self.gateway_id()?
             ),
             &cameras,
         )

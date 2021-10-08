@@ -7,10 +7,10 @@ use uuid::Uuid;
 pub mod apps;
 pub mod cameras;
 pub mod deployments;
-pub mod devices;
 pub mod discovery_requests;
 pub mod events;
 pub mod files;
+pub mod gateways;
 pub mod orgs;
 pub mod snapshots;
 pub mod streams;
@@ -20,7 +20,7 @@ pub struct Client {
     base_url: String,
     auth_token: String,
     application_id: Option<Uuid>,
-    device_id: Option<Uuid>,
+    gateway_id: Option<Uuid>,
 }
 
 impl Client {
@@ -28,14 +28,14 @@ impl Client {
         base_url: String,
         auth_token: String,
         application_id: Option<Uuid>,
-        device_id: Option<Uuid>,
+        gateway_id: Option<Uuid>,
     ) -> Self {
         Self {
             http_client: reqwest::Client::new(),
             base_url,
             auth_token,
             application_id,
-            device_id,
+            gateway_id,
         }
     }
 
@@ -153,7 +153,7 @@ impl Client {
     }
 
     #[context("Getting device ID")]
-    fn device_id(&self) -> anyhow::Result<Uuid> {
-        self.device_id.context("device_id not specified")
+    fn gateway_id(&self) -> anyhow::Result<Uuid> {
+        self.gateway_id.context("gateway_id not specified")
     }
 }
