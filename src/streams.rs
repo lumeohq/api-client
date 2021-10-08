@@ -11,7 +11,8 @@ pub struct StreamData {
     pub name: Option<String>,
     pub source: String,
     pub stream_type: String,
-    pub device_id: Option<Uuid>,
+    #[serde(rename = "device_id")]
+    pub gateway_id: Option<Uuid>,
     pub uri: Option<Url>,
     pub status: Option<String>,
     pub camera_id: Option<Uuid>,
@@ -30,7 +31,8 @@ pub struct Stream {
     pub name: String,
     pub source: String,
     pub stream_type: String,
-    pub device_id: Option<Uuid>,
+    #[serde(rename = "device_id")]
+    pub gateway_id: Option<Uuid>,
     pub uri: Option<Url>,
     pub status: String,
     pub camera_id: Option<Uuid>,

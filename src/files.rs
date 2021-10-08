@@ -20,7 +20,8 @@ pub struct FileData {
     pub size: i64,
     pub duration: Option<i32>,
     pub cloud_status: FileCloudStatus,
-    pub device_id: Option<Uuid>,
+    #[serde(rename = "device_id")]
+    pub gateway_id: Option<Uuid>,
     pub local_path: Option<String>,
     pub pipeline_id: Option<Uuid>,
     pub node_id: Option<String>,
@@ -37,7 +38,8 @@ pub struct File {
     pub size: i64,
     pub duration: Option<i32>,
     pub cloud_status: FileCloudStatus,
-    pub device_id: Option<Uuid>,
+    #[serde(rename = "device_id")]
+    pub gateway_id: Option<Uuid>,
     pub local_path: Option<String>,
     pub application_id: Uuid,
     pub pipeline_id: Option<Uuid>,
@@ -66,7 +68,8 @@ pub struct ListParams {
     /// Filter: Stream ID(s)
     pub stream_ids: Vec<Uuid>,
     /// Filter: Gateway ID(s)
-    pub device_ids: Vec<Uuid>,
+    #[serde(rename = "device_id")]
+    pub gateway_ids: Vec<Uuid>,
     /// Filter: Pipeline ID(s)
     pub pipeline_ids: Vec<Uuid>,
 }
