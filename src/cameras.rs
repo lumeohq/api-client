@@ -60,7 +60,7 @@ pub struct Camera {
 #[derive(Debug, Deserialize)]
 pub struct DevicesCamera {
     pub id: Uuid,
-    #[serde(rename = "device_id")]
+    #[serde(alias = "device_id")]
     pub gateway_id: Uuid,
     pub camera_id: Uuid,
 }

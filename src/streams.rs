@@ -31,7 +31,7 @@ pub struct Stream {
     pub name: String,
     pub source: String,
     pub stream_type: String,
-    #[serde(rename = "device_id")]
+    #[serde(alias = "device_id")]
     pub gateway_id: Option<Uuid>,
     pub uri: Option<Url>,
     pub status: String,

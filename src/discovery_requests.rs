@@ -11,7 +11,7 @@ pub struct DiscoveryRequest {
     pub id: Uuid,
     pub expires_at: DateTime<Utc>,
     pub application_id: Uuid,
-    #[serde(rename = "device_id")]
+    #[serde(rename = "device_id", alias = "gateway_id")]
     pub gateway_id: Uuid,
     #[serde(flatten)]
     pub result: DiscoveryResult,

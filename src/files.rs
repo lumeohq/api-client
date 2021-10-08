@@ -38,7 +38,7 @@ pub struct File {
     pub size: i64,
     pub duration: Option<i32>,
     pub cloud_status: FileCloudStatus,
-    #[serde(rename = "device_id")]
+    #[serde(alias = "device_id")]
     pub gateway_id: Option<Uuid>,
     pub local_path: Option<String>,
     pub application_id: Uuid,
@@ -68,7 +68,7 @@ pub struct ListParams {
     /// Filter: Stream ID(s)
     pub stream_ids: Vec<Uuid>,
     /// Filter: Gateway ID(s)
-    #[serde(rename = "device_id")]
+    #[serde(rename = "device_ids")]
     pub gateway_ids: Vec<Uuid>,
     /// Filter: Pipeline ID(s)
     pub pipeline_ids: Vec<Uuid>,
