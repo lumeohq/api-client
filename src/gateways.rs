@@ -2,7 +2,6 @@ use std::net::IpAddr;
 
 use chrono::{DateTime, Utc};
 use fn_error_context::context;
-use log_derive::logfn;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use uuid::Uuid;
@@ -11,7 +10,7 @@ use super::Client;
 
 #[skip_serializing_none]
 #[derive(Serialize)]
-pub struct DeviceData {
+pub struct GatewayData {
     pub status: String,
     pub name: String,
     pub model: Option<String>,
@@ -21,15 +20,15 @@ pub struct DeviceData {
 }
 
 #[derive(Serialize)]
-pub struct NewDevice {
+pub struct NewGateway {
     pub application_id: Uuid,
     #[serde(flatten)]
-    pub data: DeviceData,
+    pub data: GatewayData,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Deserialize)]
-pub struct Device {
+pub struct Gateway {
     pub id: Uuid,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -44,28 +43,28 @@ pub struct Device {
 }
 
 impl Client {
-    #[context("Creating device (name={})", device.data.name)]
-    pub async fn create_device(
+    #[context("Creating gateway (name={})", gateway.data.name)]
+    pub async fn create_gateway(
         &self,
         application_id: Uuid,
-        device: &NewDevice,
-    ) -> anyhow::Result<Device> {
-        self.post(&format!("/v1/apps/{}/devices", application_id), device).await
+        gateway: &NewGateway,
+    ) -> anyhow::Result<Gateway> {
+        self.post(&format!("/v1/apps/{}/devices", application_id), gateway).await
     }
 
-    #[logfn(err = "WARN")]
-    pub async fn update_device_ip_local(&self, ip: &IpAddr) -> anyhow::Result<()> {
+    #[context("Updating local gateway IP")]
+    pub async fn update_gateway_ip_local(&self, ip: &IpAddr) -> anyhow::Result<()> {
         self.put_text(
-            &format!("/v1/apps/{}/devices/{}/ip_local", self.application_id()?, self.device_id()?),
+            &format!("/v1/apps/{}/devices/{}/ip_local", self.application_id()?, self.gateway_id()?),
             ip,
         )
         .await
     }
 
-    #[logfn(err = "WARN")]
-    pub async fn update_device_ip_ext(&self, ip: &IpAddr) -> anyhow::Result<()> {
+    #[context("Updating external gateway IP")]
+    pub async fn update_gateway_ip_ext(&self, ip: &IpAddr) -> anyhow::Result<()> {
         self.put_text(
-            &format!("/v1/apps/{}/devices/{}/ip_ext", self.application_id()?, self.device_id()?),
+            &format!("/v1/apps/{}/devices/{}/ip_ext", self.application_id()?, self.gateway_id()?),
             ip,
         )
         .await

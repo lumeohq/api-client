@@ -11,7 +11,8 @@ pub struct DiscoveryRequest {
     pub id: Uuid,
     pub expires_at: DateTime<Utc>,
     pub application_id: Uuid,
-    pub device_id: Uuid,
+    #[serde(rename = "device_id", alias = "gateway_id")]
+    pub gateway_id: Uuid,
     #[serde(flatten)]
     pub result: DiscoveryResult,
 }
@@ -41,7 +42,7 @@ impl Client {
             &format!(
                 "/v1/apps/{}/devices/{}/discovery_request/{}",
                 self.application_id()?,
-                self.device_id()?,
+                self.gateway_id()?,
                 request_id
             ),
             data,

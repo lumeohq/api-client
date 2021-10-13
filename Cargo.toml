@@ -2,7 +2,6 @@
 name = "lumeo-api-client"
 version = "0.1.0"
 edition = "2018"
-authors = ["Dmitry Samoylov <dmitry.samoylov@quantumsoft.ru>"]
 description = "Lumeo API client"
 publish = false
 
@@ -10,8 +9,6 @@ publish = false
 anyhow = "1.0.42"
 chrono = { version = "0.4.19", features = ["serde"] }
 fn-error-context = "0.2.0"
-log = "0.4.14"
-log-derive = "0.4.1"
 # FIXME: figure out if we can remove `lumeo-types-rs` dependency
 lumeo-pipeline = { git = "https://github.com/lumeohq/lumeo-types-rs", rev = "9e58ae7" }
 lumeo-commands = { git = "https://github.com/lumeohq/lumeo-types-rs", rev = "9e58ae7" }
