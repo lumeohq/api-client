@@ -2,7 +2,6 @@ use std::net::IpAddr;
 
 use chrono::{DateTime, Utc};
 use fn_error_context::context;
-use log_derive::logfn;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use uuid::Uuid;
@@ -53,7 +52,7 @@ impl Client {
         self.post(&format!("/v1/apps/{}/devices", application_id), gateway).await
     }
 
-    #[logfn(err = "WARN")]
+    #[context("Updating local gateway IP")]
     pub async fn update_gateway_ip_local(&self, ip: &IpAddr) -> anyhow::Result<()> {
         self.put_text(
             &format!("/v1/apps/{}/devices/{}/ip_local", self.application_id()?, self.gateway_id()?),
@@ -62,7 +61,7 @@ impl Client {
         .await
     }
 
-    #[logfn(err = "WARN")]
+    #[context("Updating external gateway IP")]
     pub async fn update_gateway_ip_ext(&self, ip: &IpAddr) -> anyhow::Result<()> {
         self.put_text(
             &format!("/v1/apps/{}/devices/{}/ip_ext", self.application_id()?, self.gateway_id()?),
