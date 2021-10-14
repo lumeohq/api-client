@@ -84,13 +84,13 @@ impl Client {
     #[context("Getting deployments")]
     pub async fn get_deployments(&self, filter: &ListParams) -> anyhow::Result<Vec<Deployment>> {
         let path = format!("/v1/apps/{}/deployments", self.application_id()?);
-        self.get(&path, Some(&filter)).await
+        Ok(self.get(&path, Some(&filter)).await?)
     }
 
     #[context("Creating deployment")]
     pub async fn create_deployment(&self, data: &NewDeployment) -> anyhow::Result<Deployment> {
         let path = format!("/v1/apps/{}/deployments", self.application_id()?);
-        self.post(&path, data).await
+        Ok(self.post(&path, data).await?)
     }
 
     // FIXME: Make method naming consistent for all methods. It is either create/read/update/delete
@@ -98,7 +98,7 @@ impl Client {
     #[context("Getting deployment {}", id)]
     pub async fn get_deployment(&self, id: Uuid) -> anyhow::Result<Deployment> {
         let path = format!("/v1/apps/{}/deployments/{}", self.application_id()?, id);
-        self.get(&path, None::<&()>).await
+        Ok(self.get(&path, None::<&()>).await?)
     }
 
     #[context("Updating deployment {}", id)]
@@ -108,19 +108,19 @@ impl Client {
         data: &DeploymentData,
     ) -> anyhow::Result<Deployment> {
         let path = format!("/v1/apps/{}/deployments/{}", self.application_id()?, id);
-        self.put(&path, data).await
+        Ok(self.put(&path, data).await?)
     }
 
     #[context("Deleting deployment {}", id)]
     pub async fn delete_deployment(&self, id: Uuid) -> anyhow::Result<()> {
         let path = format!("/v1/apps/{}/deployments/{}", self.application_id()?, id);
-        self.delete(&path).await
+        Ok(self.delete(&path).await?)
     }
 
     #[context("Getting pipeline for deployment {}", id)]
     pub async fn get_deployment_definition(&self, id: Uuid) -> anyhow::Result<Pipeline> {
         let path = format!("/v1/apps/{}/deployments/{}/definition", self.application_id()?, id);
-        self.get(&path, None::<&()>).await
+        Ok(self.get(&path, None::<&()>).await?)
     }
 
     #[context("Starting deployment {}", id)]

@@ -77,26 +77,30 @@ pub struct ListParams {
 impl Client {
     #[context("Listing files")]
     pub async fn list_files(&self, params: Option<&ListParams>) -> anyhow::Result<Vec<File>> {
-        self.get(&format!("/v1/apps/{}/files", self.application_id()?), params).await
+        Ok(self.get(&format!("/v1/apps/{}/files", self.application_id()?), params).await?)
     }
 
     #[context("Creating file {}", file_data.name)]
     pub async fn create_file(&self, file_data: &FileData) -> anyhow::Result<File> {
-        self.post(&format!("/v1/apps/{}/files", self.application_id()?), file_data).await
+        Ok(self.post(&format!("/v1/apps/{}/files", self.application_id()?), file_data).await?)
     }
 
     #[context("Reading file {}", id)]
     pub async fn read_file(&self, id: Uuid) -> anyhow::Result<File> {
-        self.get(&format!("/v1/apps/{}/files/{}", self.application_id()?, id), None::<&()>).await
+        Ok(self
+            .get(&format!("/v1/apps/{}/files/{}", self.application_id()?, id), None::<&()>)
+            .await?)
     }
 
     #[context("Updating file {}", id)]
     pub async fn update_file(&self, id: Uuid, file_data: &FileData) -> anyhow::Result<File> {
-        self.put(&format!("/v1/apps/{}/files/{}", self.application_id()?, id), file_data).await
+        Ok(self
+            .put(&format!("/v1/apps/{}/files/{}", self.application_id()?, id), file_data)
+            .await?)
     }
 
     #[context("Deleting file {}", id)]
     pub async fn delete_file(&self, id: Uuid) -> anyhow::Result<()> {
-        self.delete(&format!("/v1/apps/{}/files/{}", self.application_id()?, id)).await
+        Ok(self.delete(&format!("/v1/apps/{}/files/{}", self.application_id()?, id)).await?)
     }
 }

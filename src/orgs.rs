@@ -1,5 +1,5 @@
+use anyhow::Context;
 use chrono::{DateTime, Utc};
-use fn_error_context::context;
 use serde::Deserialize;
 use serde_with::skip_serializing_none;
 use uuid::Uuid;
@@ -17,8 +17,7 @@ pub struct Organization {
 }
 
 impl Client {
-    #[context("Getting organizations")]
     pub async fn get_orgs(&self) -> anyhow::Result<Vec<Organization>> {
-        self.get("/v1/orgs", Option::<&()>::None).await
+        self.get("/v1/orgs", Option::<&()>::None).await.context("Getting organizations")
     }
 }

@@ -45,12 +45,13 @@ pub struct Stream {
 impl Client {
     #[context("Creating a stream (name={:?})", stream.name)]
     pub async fn create_stream(&self, stream: &StreamData) -> anyhow::Result<Stream> {
-        self.post(&format!("/v1/apps/{}/streams", self.application_id()?), stream).await
+        Ok(self.post(&format!("/v1/apps/{}/streams", self.application_id()?), stream).await?)
     }
 
     #[context("Reading stream {}", stream_id)]
     pub async fn read_stream(&self, stream_id: Uuid) -> anyhow::Result<Stream> {
-        self.get(&format!("/v1/apps/{}/streams/{}", self.application_id()?, stream_id), None::<&()>)
-            .await
+        Ok(self
+            .get(&format!("/v1/apps/{}/streams/{}", self.application_id()?, stream_id), None::<&()>)
+            .await?)
     }
 }

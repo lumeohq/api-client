@@ -38,15 +38,16 @@ impl Client {
         request_id: Uuid,
         data: &DiscoveryRequestData,
     ) -> anyhow::Result<()> {
-        self.put_without_response_deserialization(
-            &format!(
-                "/v1/apps/{}/devices/{}/discovery_request/{}",
-                self.application_id()?,
-                self.gateway_id()?,
-                request_id
-            ),
-            data,
-        )
-        .await
+        Ok(self
+            .put_without_response_deserialization(
+                &format!(
+                    "/v1/apps/{}/devices/{}/discovery_request/{}",
+                    self.application_id()?,
+                    self.gateway_id()?,
+                    request_id
+                ),
+                data,
+            )
+            .await?)
     }
 }

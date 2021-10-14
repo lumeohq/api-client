@@ -41,6 +41,6 @@ pub struct Event {
 impl Client {
     #[context("Creating event")]
     pub async fn create_event(&self, event: &EventData) -> anyhow::Result<Event> {
-        self.post(&format!("/v1/apps/{}/events", self.application_id()?), event).await
+        Ok(self.post(&format!("/v1/apps/{}/events", self.application_id()?), event).await?)
     }
 }
