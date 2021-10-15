@@ -1,4 +1,5 @@
 use anyhow::Context;
+use error::ResultExt;
 use fn_error_context::context;
 use reqwest::{header, Method, Url};
 use serde::{de::DeserializeOwned, Serialize};
@@ -8,12 +9,16 @@ pub mod apps;
 pub mod cameras;
 pub mod deployments;
 pub mod discovery_requests;
+mod error;
 pub mod events;
 pub mod files;
 pub mod gateways;
 pub mod orgs;
 pub mod snapshots;
 pub mod streams;
+
+pub use error::HttpError;
+pub type HttpResult<T> = Result<T, HttpError>;
 
 pub struct Client {
     http_client: reqwest::Client,
@@ -39,87 +44,75 @@ impl Client {
         }
     }
 
-    #[context("Get {}", path)]
-    pub async fn get<T, Q>(&self, path: &str, query: Option<&Q>) -> anyhow::Result<T>
+    pub async fn get<T, Q>(&self, path: &str, query: Option<&Q>) -> HttpResult<T>
     where
         T: DeserializeOwned,
         Q: Serialize,
     {
-        let query = query.map(serde_urlencoded::to_string).transpose()?;
-        Ok(self
-            .request(Method::GET, path, query.as_deref())?
-            .send()
+        let query =
+            query.map(serde_urlencoded::to_string).transpose().http_context(Method::GET, path)?;
+        let request_builder = self.request(Method::GET, path, query.as_deref())?;
+
+        async move { request_builder.send().await?.error_for_status()?.json().await }
             .await
-            .with_context(|| format!("Error GETting API object from {:?}", path))?
-            .error_for_status()
-            .with_context(|| format!("Error GETting API object from {:?}", path))?
-            .json()
-            .await?)
+            .http_context(Method::GET, path)
     }
 
-    #[context("Post {}", path)]
-    pub async fn post<T, R>(&self, path: &str, body: &R) -> anyhow::Result<T>
+    pub async fn post<T, R>(&self, path: &str, body: &R) -> HttpResult<T>
     where
         R: Serialize,
         T: DeserializeOwned,
     {
-        Ok(self
-            .request(Method::POST, path, None)?
-            .json(body)
-            .send()
-            .await?
-            .error_for_status()?
-            .json()
-            .await?)
+        let request_builder = self.request(Method::POST, path, None)?.json(body);
+        async move { request_builder.send().await?.error_for_status()?.json().await }
+            .await
+            .http_context(Method::POST, path)
     }
 
-    #[context("Put {}", path)]
-    pub async fn put<T, R>(&self, path: &str, body: &R) -> anyhow::Result<T>
+    pub async fn put<T, R>(&self, path: &str, body: &R) -> HttpResult<T>
     where
         R: Serialize,
         T: DeserializeOwned,
     {
-        Ok(self
-            .request(Method::PUT, path, None)?
-            .json(body)
-            .send()
-            .await?
-            .error_for_status()?
-            .json()
-            .await?)
+        let request_builder = self.request(Method::PUT, path, None)?.json(body);
+        async move { request_builder.send().await?.error_for_status()?.json().await }
+            .await
+            .http_context(Method::PUT, path)
     }
 
-    #[context("Put without deserializing response {}", path)]
     pub async fn put_without_response_deserialization<R>(
         &self,
         path: &str,
         body: &R,
-    ) -> anyhow::Result<()>
+    ) -> HttpResult<()>
     where
         R: Serialize,
     {
-        self.request(Method::PUT, path, None)?.json(body).send().await?.error_for_status()?;
+        let request_builder = self.request(Method::PUT, path, None)?;
+        async move { request_builder.json(body).send().await?.error_for_status() }
+            .await
+            .http_context(Method::PUT, path)?;
 
         Ok(())
     }
 
-    #[context("Put text {}", path)]
-    pub async fn put_text<R>(&self, path: &str, body: &R) -> anyhow::Result<()>
+    pub async fn put_text<R>(&self, path: &str, body: &R) -> HttpResult<()>
     where
         R: ToString + ?Sized,
     {
-        self.request(Method::PUT, path, None)?
-            .body(body.to_string())
-            .send()
-            .await?
-            .error_for_status()?;
+        let request_builder = self.request(Method::PUT, path, None)?;
+        async move { request_builder.body(body.to_string()).send().await?.error_for_status() }
+            .await
+            .http_context(Method::PUT, path)?;
 
         Ok(())
     }
 
-    #[context("Delete {}", path)]
-    pub async fn delete(&self, path: &str) -> anyhow::Result<()> {
-        self.request(Method::DELETE, path, None)?.send().await?.error_for_status()?;
+    pub async fn delete(&self, path: &str) -> HttpResult<()> {
+        let request_builder = self.request(Method::DELETE, path, None)?;
+        async move { request_builder.send().await?.error_for_status() }
+            .await
+            .http_context(Method::DELETE, path)?;
 
         Ok(())
     }
@@ -129,8 +122,9 @@ impl Client {
         method: Method,
         path: &str,
         query: Option<&str>,
-    ) -> anyhow::Result<reqwest::RequestBuilder> {
-        let mut url = Url::parse(&format!("{}{}", self.base_url, path))?;
+    ) -> HttpResult<reqwest::RequestBuilder> {
+        let mut url =
+            Url::parse(&format!("{}{}", self.base_url, path)).http_context(method.clone(), path)?;
 
         if let Some(q2) = query {
             let full_query = match url.query() {

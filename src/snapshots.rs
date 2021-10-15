@@ -17,20 +17,22 @@ pub struct SnapshotResponse {
 impl Client {
     #[context("Taking camera snapshot")]
     pub async fn take_camera_snapshot(&self, camera_id: Uuid) -> anyhow::Result<SnapshotResponse> {
-        self.post(
-            &format!("/v1/apps/{}/cameras/{}/snapshot", self.application_id()?, camera_id),
-            &SnapshotParams::default(),
-        )
-        .await
+        Ok(self
+            .post(
+                &format!("/v1/apps/{}/cameras/{}/snapshot", self.application_id()?, camera_id),
+                &SnapshotParams::default(),
+            )
+            .await?)
     }
 
     #[context("Taking stream snapshot")]
     pub async fn take_stream_snapshot(&self, stream_id: Uuid) -> anyhow::Result<SnapshotResponse> {
-        self.post(
-            &format!("/v1/apps/{}/streams/{}/snapshot", self.application_id()?, stream_id),
-            &SnapshotParams::default(),
-        )
-        .await
+        Ok(self
+            .post(
+                &format!("/v1/apps/{}/streams/{}/snapshot", self.application_id()?, stream_id),
+                &SnapshotParams::default(),
+            )
+            .await?)
     }
 
     #[context("Setting camera snapshot file ID")]
@@ -39,11 +41,16 @@ impl Client {
         camera_id: Uuid,
         snapshot_file_id: Uuid,
     ) -> anyhow::Result<()> {
-        self.put_text(
-            &format!("/v1/apps/{}/cameras/{}/snapshot_file_id", self.application_id()?, camera_id),
-            &snapshot_file_id.to_hyphenated(),
-        )
-        .await
+        Ok(self
+            .put_text(
+                &format!(
+                    "/v1/apps/{}/cameras/{}/snapshot_file_id",
+                    self.application_id()?,
+                    camera_id
+                ),
+                &snapshot_file_id.to_hyphenated(),
+            )
+            .await?)
     }
 
     #[context("Setting stream snapshot file ID")]
@@ -52,10 +59,15 @@ impl Client {
         stream_id: Uuid,
         snapshot_file_id: Uuid,
     ) -> anyhow::Result<()> {
-        self.put_text(
-            &format!("/v1/apps/{}/streams/{}/snapshot_file_id", self.application_id()?, stream_id),
-            &snapshot_file_id.to_hyphenated(),
-        )
-        .await
+        Ok(self
+            .put_text(
+                &format!(
+                    "/v1/apps/{}/streams/{}/snapshot_file_id",
+                    self.application_id()?,
+                    stream_id
+                ),
+                &snapshot_file_id.to_hyphenated(),
+            )
+            .await?)
     }
 }

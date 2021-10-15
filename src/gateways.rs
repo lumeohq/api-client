@@ -49,24 +49,34 @@ impl Client {
         application_id: Uuid,
         gateway: &NewGateway,
     ) -> anyhow::Result<Gateway> {
-        self.post(&format!("/v1/apps/{}/devices", application_id), gateway).await
+        Ok(self.post(&format!("/v1/apps/{}/devices", application_id), gateway).await?)
     }
 
     #[context("Updating local gateway IP")]
     pub async fn update_gateway_ip_local(&self, ip: &IpAddr) -> anyhow::Result<()> {
-        self.put_text(
-            &format!("/v1/apps/{}/devices/{}/ip_local", self.application_id()?, self.gateway_id()?),
-            ip,
-        )
-        .await
+        Ok(self
+            .put_text(
+                &format!(
+                    "/v1/apps/{}/devices/{}/ip_local",
+                    self.application_id()?,
+                    self.gateway_id()?
+                ),
+                ip,
+            )
+            .await?)
     }
 
     #[context("Updating external gateway IP")]
     pub async fn update_gateway_ip_ext(&self, ip: &IpAddr) -> anyhow::Result<()> {
-        self.put_text(
-            &format!("/v1/apps/{}/devices/{}/ip_ext", self.application_id()?, self.gateway_id()?),
-            ip,
-        )
-        .await
+        Ok(self
+            .put_text(
+                &format!(
+                    "/v1/apps/{}/devices/{}/ip_ext",
+                    self.application_id()?,
+                    self.gateway_id()?
+                ),
+                ip,
+            )
+            .await?)
     }
 }

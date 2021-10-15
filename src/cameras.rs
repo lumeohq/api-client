@@ -73,44 +73,48 @@ pub struct NewLinkedCamera {
 impl Client {
     #[context("Reading camera {}", camera_id)]
     pub async fn read_camera(&self, camera_id: Uuid) -> anyhow::Result<Camera> {
-        self.get(&format!("/v1/apps/{}/cameras/{}", self.application_id()?, camera_id), None::<&()>)
-            .await
+        Ok(self
+            .get(&format!("/v1/apps/{}/cameras/{}", self.application_id()?, camera_id), None::<&()>)
+            .await?)
     }
 
     #[context("Listing cameras")]
     pub async fn list_cameras(&self) -> anyhow::Result<Vec<Camera>> {
-        self.get(&format!("/v1/apps/{}/cameras", self.application_id()?), None::<&()>).await
+        Ok(self.get(&format!("/v1/apps/{}/cameras", self.application_id()?), None::<&()>).await?)
     }
 
     #[context("Listing camera streams")]
     pub async fn list_camera_streams(&self, camera_id: Uuid) -> anyhow::Result<Vec<Stream>> {
-        self.get(
-            &format!("/v1/apps/{}/cameras/{}/streams", self.application_id()?, camera_id),
-            None::<&()>,
-        )
-        .await
+        Ok(self
+            .get(
+                &format!("/v1/apps/{}/cameras/{}/streams", self.application_id()?, camera_id),
+                None::<&()>,
+            )
+            .await?)
     }
 
     #[context("Setting cameras statuses")]
     pub async fn set_cameras_statuses(&self, cameras: &[CameraData]) -> anyhow::Result<()> {
-        self.put_without_response_deserialization(
-            &format!(
-                "/v1/apps/{}/devices/{}/cameras_statuses",
-                self.application_id()?,
-                self.gateway_id()?
-            ),
-            &cameras,
-        )
-        .await
+        Ok(self
+            .put_without_response_deserialization(
+                &format!(
+                    "/v1/apps/{}/devices/{}/cameras_statuses",
+                    self.application_id()?,
+                    self.gateway_id()?
+                ),
+                &cameras,
+            )
+            .await?)
     }
 
     #[context("Setting camera status")]
     pub async fn set_camera_status(&self, camera_id: Uuid, status: &str) -> anyhow::Result<()> {
-        self.put_text(
-            &format!("/v1/apps/{}/cameras/{}/status", self.application_id()?, camera_id),
-            status,
-        )
-        .await
+        Ok(self
+            .put_text(
+                &format!("/v1/apps/{}/cameras/{}/status", self.application_id()?, camera_id),
+                status,
+            )
+            .await?)
     }
 }
 
