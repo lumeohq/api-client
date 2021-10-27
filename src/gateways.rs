@@ -1,13 +1,12 @@
 use std::net::IpAddr;
 
 use chrono::{DateTime, Utc};
-use fn_error_context::context;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use uuid::Uuid;
 
 use super::Client;
-use crate::cameras::Camera;
+use crate::{cameras::Camera, Result};
 
 #[skip_serializing_none]
 #[derive(Serialize)]
@@ -44,54 +43,39 @@ pub struct Gateway {
 }
 
 impl Client {
-    #[context("Creating gateway (name={})", gateway.data.name)]
     pub async fn create_gateway(
         &self,
         application_id: Uuid,
         gateway: &NewGateway,
-    ) -> anyhow::Result<Gateway> {
-        Ok(self.post(&format!("/v1/apps/{}/devices", application_id), gateway).await?)
+    ) -> Result<Gateway> {
+        self.post(&format!("/v1/apps/{}/devices", application_id), gateway).await
     }
 
-    #[context("Listing linked cameras")]
-    pub async fn list_linked_cameras(&self) -> anyhow::Result<Vec<Camera>> {
-        Ok(self
-            .get(
-                &format!(
-                    "/v1/apps/{}/devices/{}/linked_cameras",
-                    self.application_id()?,
-                    self.gateway_id()?
-                ),
-                None::<&()>,
-            )
-            .await?)
+    pub async fn list_linked_cameras(&self) -> Result<Vec<Camera>> {
+        self.get(
+            &format!(
+                "/v1/apps/{}/devices/{}/linked_cameras",
+                self.application_id()?,
+                self.gateway_id()?
+            ),
+            None::<&()>,
+        )
+        .await
     }
 
-    #[context("Updating local gateway IP")]
-    pub async fn update_gateway_ip_local(&self, ip: &IpAddr) -> anyhow::Result<()> {
-        Ok(self
-            .put_text(
-                &format!(
-                    "/v1/apps/{}/devices/{}/ip_local",
-                    self.application_id()?,
-                    self.gateway_id()?
-                ),
-                ip,
-            )
-            .await?)
+    pub async fn update_gateway_ip_local(&self, ip: &IpAddr) -> Result<()> {
+        self.put_text(
+            &format!("/v1/apps/{}/devices/{}/ip_local", self.application_id()?, self.gateway_id()?),
+            ip,
+        )
+        .await
     }
 
-    #[context("Updating external gateway IP")]
-    pub async fn update_gateway_ip_ext(&self, ip: &IpAddr) -> anyhow::Result<()> {
-        Ok(self
-            .put_text(
-                &format!(
-                    "/v1/apps/{}/devices/{}/ip_ext",
-                    self.application_id()?,
-                    self.gateway_id()?
-                ),
-                ip,
-            )
-            .await?)
+    pub async fn update_gateway_ip_ext(&self, ip: &IpAddr) -> Result<()> {
+        self.put_text(
+            &format!("/v1/apps/{}/devices/{}/ip_ext", self.application_id()?, self.gateway_id()?),
+            ip,
+        )
+        .await
     }
 }

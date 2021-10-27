@@ -1,10 +1,10 @@
 use chrono::{DateTime, Utc};
-use fn_error_context::context;
 use serde::{Deserialize, Serialize};
 use url::Url;
 use uuid::Uuid;
 
 use super::Client;
+use crate::Result;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -75,32 +75,23 @@ pub struct ListParams {
 }
 
 impl Client {
-    #[context("Listing files")]
-    pub async fn list_files(&self, params: Option<&ListParams>) -> anyhow::Result<Vec<File>> {
-        Ok(self.get(&format!("/v1/apps/{}/files", self.application_id()?), params).await?)
+    pub async fn list_files(&self, params: Option<&ListParams>) -> Result<Vec<File>> {
+        self.get(&format!("/v1/apps/{}/files", self.application_id()?), params).await
     }
 
-    #[context("Creating file {}", file_data.name)]
-    pub async fn create_file(&self, file_data: &FileData) -> anyhow::Result<File> {
-        Ok(self.post(&format!("/v1/apps/{}/files", self.application_id()?), file_data).await?)
+    pub async fn create_file(&self, file_data: &FileData) -> Result<File> {
+        self.post(&format!("/v1/apps/{}/files", self.application_id()?), file_data).await
     }
 
-    #[context("Reading file {}", id)]
-    pub async fn read_file(&self, id: Uuid) -> anyhow::Result<File> {
-        Ok(self
-            .get(&format!("/v1/apps/{}/files/{}", self.application_id()?, id), None::<&()>)
-            .await?)
+    pub async fn read_file(&self, id: Uuid) -> Result<File> {
+        self.get(&format!("/v1/apps/{}/files/{}", self.application_id()?, id), None::<&()>).await
     }
 
-    #[context("Updating file {}", id)]
-    pub async fn update_file(&self, id: Uuid, file_data: &FileData) -> anyhow::Result<File> {
-        Ok(self
-            .put(&format!("/v1/apps/{}/files/{}", self.application_id()?, id), file_data)
-            .await?)
+    pub async fn update_file(&self, id: Uuid, file_data: &FileData) -> Result<File> {
+        self.put(&format!("/v1/apps/{}/files/{}", self.application_id()?, id), file_data).await
     }
 
-    #[context("Deleting file {}", id)]
-    pub async fn delete_file(&self, id: Uuid) -> anyhow::Result<()> {
-        Ok(self.delete(&format!("/v1/apps/{}/files/{}", self.application_id()?, id)).await?)
+    pub async fn delete_file(&self, id: Uuid) -> Result<()> {
+        self.delete(&format!("/v1/apps/{}/files/{}", self.application_id()?, id)).await
     }
 }

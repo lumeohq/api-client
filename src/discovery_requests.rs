@@ -1,10 +1,10 @@
 use chrono::{DateTime, Utc};
-use fn_error_context::context;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 use uuid::Uuid;
 
 use super::{cameras::CameraData, Client};
+use crate::Result;
 
 #[derive(Deserialize, Serialize)]
 pub struct DiscoveryRequest {
@@ -32,22 +32,20 @@ pub enum DiscoveryResult {
 }
 
 impl Client {
-    #[context("Responding to discovery request {}", request_id)]
     pub async fn put_discovery_response(
         &self,
         request_id: Uuid,
         data: &DiscoveryRequestData,
-    ) -> anyhow::Result<()> {
-        Ok(self
-            .put_without_response_deserialization(
-                &format!(
-                    "/v1/apps/{}/devices/{}/discovery_request/{}",
-                    self.application_id()?,
-                    self.gateway_id()?,
-                    request_id
-                ),
-                data,
-            )
-            .await?)
+    ) -> Result<()> {
+        self.put_without_response_deserialization(
+            &format!(
+                "/v1/apps/{}/devices/{}/discovery_request/{}",
+                self.application_id()?,
+                self.gateway_id()?,
+                request_id
+            ),
+            data,
+        )
+        .await
     }
 }

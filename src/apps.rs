@@ -1,10 +1,10 @@
-use anyhow::Context;
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use serde_with::skip_serializing_none;
 use uuid::Uuid;
 
 use super::Client;
+use crate::Result;
 
 #[skip_serializing_none]
 #[derive(Debug, Deserialize)]
@@ -17,13 +17,13 @@ pub struct Application {
 }
 
 impl Client {
-    pub async fn get_app(&self, app_id: &Uuid) -> anyhow::Result<Application> {
+    pub async fn get_app(&self, app_id: &Uuid) -> Result<Application> {
         let path = format!("/v1/apps/{}", app_id);
-        self.get(&path, Option::<&()>::None).await.context("Getting application")
+        self.get(&path, Option::<&()>::None).await
     }
 
-    pub async fn get_apps(&self, org_id: &Uuid) -> anyhow::Result<Vec<Application>> {
+    pub async fn get_apps(&self, org_id: &Uuid) -> Result<Vec<Application>> {
         let path = format!("/v1/orgs/{}/apps", org_id);
-        self.get(&path, Option::<&()>::None).await.context("Getting applications")
+        self.get(&path, Option::<&()>::None).await
     }
 }
