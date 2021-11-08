@@ -7,6 +7,7 @@ use serde_with::skip_serializing_none;
 use uuid::Uuid;
 
 use super::Client;
+use crate::cameras::Camera;
 
 #[skip_serializing_none]
 #[derive(Serialize)]
@@ -50,6 +51,20 @@ impl Client {
         gateway: &NewGateway,
     ) -> anyhow::Result<Gateway> {
         Ok(self.post(&format!("/v1/apps/{}/devices", application_id), gateway).await?)
+    }
+
+    #[context("Listing linked cameras")]
+    pub async fn list_linked_cameras(&self) -> anyhow::Result<Vec<Camera>> {
+        Ok(self
+            .get(
+                &format!(
+                    "/v1/apps/{}/devices/{}/linked_cameras",
+                    self.application_id()?,
+                    self.gateway_id()?
+                ),
+                None::<&()>,
+            )
+            .await?)
     }
 
     #[context("Updating local gateway IP")]
