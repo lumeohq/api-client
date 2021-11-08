@@ -1,6 +1,5 @@
 use chrono::{DateTime, Utc};
 use fn_error_context::context;
-use lumeo_commands::api::camera::{Camera as DiscoveredCamera, Status};
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 use serde_with::skip_serializing_none;
@@ -125,51 +124,6 @@ impl Client {
                 status,
             )
             .await?)
-    }
-}
-
-impl From<&DiscoveredCamera> for CameraData {
-    fn from(c: &DiscoveredCamera) -> Self {
-        match c {
-            DiscoveredCamera::Local(camera) => CameraData {
-                status: match camera.status {
-                    Status::Online => Some("online".to_string()),
-                    Status::Offline => Some("offline".to_string()),
-                },
-                name: camera.name.clone(),
-                model: camera.model.clone(),
-                conn_type: Some("local".to_string()),
-                gateway_id: None,
-                uri: Some(camera.uri.clone()),
-                ip_local: None,
-                ip_ext: None,
-                mac_address: None,
-                username: None,
-                password: None,
-                configuration: None,
-                capabilities: serde_json::to_value(&camera.capabilities).ok(),
-                snapshot_file_id: None,
-            },
-            DiscoveredCamera::Remote(camera) => CameraData {
-                status: match camera.status {
-                    Status::Online => Some("online".to_string()),
-                    Status::Offline => Some("offline".to_string()),
-                },
-                name: camera.name.clone(),
-                model: camera.model.clone(),
-                conn_type: Some("remote".to_string()),
-                gateway_id: None,
-                uri: Some(camera.uri.clone()),
-                ip_local: camera.ip_local.clone(),
-                ip_ext: None,
-                mac_address: Some(camera.mac_address.clone()),
-                username: None,
-                password: None,
-                configuration: None,
-                capabilities: None,
-                snapshot_file_id: None,
-            },
-        }
     }
 }
 
