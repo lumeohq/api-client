@@ -10,7 +10,7 @@ use uuid::Uuid;
 use super::{streams::Stream, Client};
 
 #[skip_serializing_none]
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 pub struct CameraData {
     pub status: Option<String>,
     pub name: Option<String>,
