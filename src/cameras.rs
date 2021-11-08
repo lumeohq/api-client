@@ -172,3 +172,24 @@ impl From<&DiscoveredCamera> for CameraData {
         }
     }
 }
+
+impl Camera {
+    pub fn to_data(&self) -> CameraData {
+        CameraData {
+            status: Some(self.status.clone()),
+            name: Some(self.name.clone()),
+            model: self.model.clone(),
+            conn_type: self.conn_type.clone(),
+            gateway_id: self.gateway_id,
+            uri: self.uri.clone(),
+            ip_local: self.ip_local.clone(),
+            ip_ext: self.ip_ext.clone(),
+            mac_address: self.mac_address.clone(),
+            username: self.username.clone(),
+            password: self.password.clone(),
+            configuration: self.configuration.clone(),
+            capabilities: self.capabilities.clone(),
+            snapshot_file_id: self.snapshot_file_id,
+        }
+    }
+}
