@@ -93,6 +93,16 @@ impl Client {
             .await?)
     }
 
+    #[context("Updating camera {}", camera_id)]
+    pub async fn update_camera(
+        &self,
+        camera_id: Uuid,
+        data: &CameraData,
+    ) -> anyhow::Result<Camera> {
+        let path = format!("/v1/apps/{}/cameras/{}", self.application_id()?, camera_id);
+        Ok(self.put(&path, data).await?)
+    }
+
     #[context("Setting cameras statuses")]
     pub async fn set_cameras_statuses(&self, cameras: &[CameraData]) -> anyhow::Result<()> {
         Ok(self
