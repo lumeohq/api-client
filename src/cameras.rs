@@ -1,6 +1,5 @@
 use chrono::{DateTime, Utc};
 use fn_error_context::context;
-use lumeo_commands::api::camera::{Camera as DiscoveredCamera, Status};
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 use serde_with::skip_serializing_none;
@@ -10,7 +9,7 @@ use uuid::Uuid;
 use super::{streams::Stream, Client};
 
 #[skip_serializing_none]
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 pub struct CameraData {
     pub status: Option<String>,
     pub name: Option<String>,
@@ -93,6 +92,16 @@ impl Client {
             .await?)
     }
 
+    #[context("Updating camera {}", camera_id)]
+    pub async fn update_camera(
+        &self,
+        camera_id: Uuid,
+        data: &CameraData,
+    ) -> anyhow::Result<Camera> {
+        let path = format!("/v1/apps/{}/cameras/{}", self.application_id()?, camera_id);
+        Ok(self.put(&path, data).await?)
+    }
+
     #[context("Setting cameras statuses")]
     pub async fn set_cameras_statuses(&self, cameras: &[CameraData]) -> anyhow::Result<()> {
         Ok(self
@@ -118,47 +127,23 @@ impl Client {
     }
 }
 
-impl From<&DiscoveredCamera> for CameraData {
-    fn from(c: &DiscoveredCamera) -> Self {
-        match c {
-            DiscoveredCamera::Local(camera) => CameraData {
-                status: match camera.status {
-                    Status::Online => Some("online".to_string()),
-                    Status::Offline => Some("offline".to_string()),
-                },
-                name: camera.name.clone(),
-                model: camera.model.clone(),
-                conn_type: Some("local".to_string()),
-                gateway_id: None,
-                uri: Some(camera.uri.clone()),
-                ip_local: None,
-                ip_ext: None,
-                mac_address: None,
-                username: None,
-                password: None,
-                configuration: None,
-                capabilities: serde_json::to_value(&camera.capabilities).ok(),
-                snapshot_file_id: None,
-            },
-            DiscoveredCamera::Remote(camera) => CameraData {
-                status: match camera.status {
-                    Status::Online => Some("online".to_string()),
-                    Status::Offline => Some("offline".to_string()),
-                },
-                name: camera.name.clone(),
-                model: camera.model.clone(),
-                conn_type: Some("remote".to_string()),
-                gateway_id: None,
-                uri: Some(camera.uri.clone()),
-                ip_local: camera.ip_local.clone(),
-                ip_ext: None,
-                mac_address: Some(camera.mac_address.clone()),
-                username: None,
-                password: None,
-                configuration: None,
-                capabilities: None,
-                snapshot_file_id: None,
-            },
+impl Camera {
+    pub fn to_data(&self) -> CameraData {
+        CameraData {
+            status: Some(self.status.clone()),
+            name: Some(self.name.clone()),
+            model: self.model.clone(),
+            conn_type: self.conn_type.clone(),
+            gateway_id: self.gateway_id,
+            uri: self.uri.clone(),
+            ip_local: self.ip_local.clone(),
+            ip_ext: self.ip_ext.clone(),
+            mac_address: self.mac_address.clone(),
+            username: self.username.clone(),
+            password: self.password.clone(),
+            configuration: self.configuration.clone(),
+            capabilities: self.capabilities.clone(),
+            snapshot_file_id: self.snapshot_file_id,
         }
     }
 }
