@@ -1,9 +1,9 @@
 use chrono::{DateTime, Utc};
-use fn_error_context::context;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::Client;
+use crate::Result;
 
 #[derive(Clone, Copy, Eq, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -39,8 +39,7 @@ pub struct Event {
 }
 
 impl Client {
-    #[context("Creating event")]
-    pub async fn create_event(&self, event: &EventData) -> anyhow::Result<Event> {
-        Ok(self.post(&format!("/v1/apps/{}/events", self.application_id()?), event).await?)
+    pub async fn create_event(&self, event: &EventData) -> Result<Event> {
+        self.post(&format!("/v1/apps/{}/events", self.application_id()?), event).await
     }
 }

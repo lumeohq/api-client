@@ -1,10 +1,10 @@
 use chrono::{DateTime, Utc};
-use fn_error_context::context;
 use serde::{Deserialize, Serialize};
 use url::Url;
 use uuid::Uuid;
 
 use super::Client;
+use crate::Result;
 
 #[derive(Serialize)]
 pub struct StreamData {
@@ -43,15 +43,12 @@ pub struct Stream {
 }
 
 impl Client {
-    #[context("Creating a stream (name={:?})", stream.name)]
-    pub async fn create_stream(&self, stream: &StreamData) -> anyhow::Result<Stream> {
-        Ok(self.post(&format!("/v1/apps/{}/streams", self.application_id()?), stream).await?)
+    pub async fn create_stream(&self, stream: &StreamData) -> Result<Stream> {
+        self.post(&format!("/v1/apps/{}/streams", self.application_id()?), stream).await
     }
 
-    #[context("Reading stream {}", stream_id)]
-    pub async fn read_stream(&self, stream_id: Uuid) -> anyhow::Result<Stream> {
-        Ok(self
-            .get(&format!("/v1/apps/{}/streams/{}", self.application_id()?, stream_id), None::<&()>)
-            .await?)
+    pub async fn read_stream(&self, stream_id: Uuid) -> Result<Stream> {
+        self.get(&format!("/v1/apps/{}/streams/{}", self.application_id()?, stream_id), None::<&()>)
+            .await
     }
 }

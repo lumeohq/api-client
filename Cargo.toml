@@ -6,9 +6,8 @@ description = "Lumeo API client"
 publish = false
 
 [dependencies]
-anyhow = "1.0.42"
 chrono = { version = "0.4.19", features = ["serde"] }
-fn-error-context = "0.2.0"
+thiserror = "1.0"
 # FIXME: figure out if we can remove `lumeo-types-rs` dependency
 lumeo-pipeline = { git = "https://github.com/lumeohq/lumeo-types-rs", rev = "c793995" }
 reqwest = { version = "0.11.4", default-features = false, features = ["json", "rustls-tls", "stream"] }
@@ -16,6 +15,6 @@ serde = { version = "1.0.126", features = ["derive"] }
 serde_json = "1.0.64"
 serde_urlencoded = { git = "https://github.com/lumeohq/serde_urlencoded", rev = "5c66155" }
 serde_with = "1.9.4"
-strum = { version = "0.21.0", features = ["derive"] }
+strum = { version = "0.22.0", features = ["derive"] }
 url = "2.2.2"
 uuid = { version = "0.8.2", features = ["serde"] }

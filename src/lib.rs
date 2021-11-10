@@ -1,6 +1,4 @@
-use anyhow::Context;
 use error::ResultExt;
-use fn_error_context::context;
 use reqwest::{header, Method, Url};
 use serde::{de::DeserializeOwned, Serialize};
 use uuid::Uuid;
@@ -9,7 +7,7 @@ pub mod apps;
 pub mod cameras;
 pub mod deployments;
 pub mod discovery_requests;
-mod error;
+pub mod error;
 pub mod events;
 pub mod files;
 pub mod gateways;
@@ -17,8 +15,9 @@ pub mod orgs;
 pub mod snapshots;
 pub mod streams;
 
-pub use error::HttpError;
-pub type HttpResult<T> = Result<T, HttpError>;
+use error::{verify_response, Error};
+type Callback = Box<dyn Fn(&Error) + Send + Sync + 'static>;
+pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 pub struct Client {
     http_client: reqwest::Client,
@@ -26,6 +25,7 @@ pub struct Client {
     auth_token: String,
     application_id: Option<Uuid>,
     gateway_id: Option<Uuid>,
+    error_cb: Option<Callback>,
 }
 
 impl Client {
@@ -41,10 +41,19 @@ impl Client {
             auth_token,
             application_id,
             gateway_id,
+            error_cb: None,
         }
     }
 
-    pub async fn get<T, Q>(&self, path: &str, query: Option<&Q>) -> HttpResult<T>
+    pub async fn get<T, Q>(&self, path: &str, query: Option<&Q>) -> Result<T>
+    where
+        T: DeserializeOwned,
+        Q: Serialize,
+    {
+        self.get_internal(path, query).await.map_err(|err| self.through_cb(err))
+    }
+
+    async fn get_internal<T, Q>(&self, path: &str, query: Option<&Q>) -> Result<T>
     where
         T: DeserializeOwned,
         Q: Serialize,
@@ -53,66 +62,106 @@ impl Client {
             query.map(serde_urlencoded::to_string).transpose().http_context(Method::GET, path)?;
         let request_builder = self.request(Method::GET, path, query.as_deref())?;
 
-        async move { request_builder.send().await?.error_for_status()?.json().await }
+        verify_response(request_builder.send().await, Method::GET, path)
+            .await?
+            .json()
             .await
             .http_context(Method::GET, path)
     }
 
-    pub async fn post<T, R>(&self, path: &str, body: &R) -> HttpResult<T>
+    pub async fn post<T, R>(&self, path: &str, body: &R) -> Result<T>
+    where
+        R: Serialize,
+        T: DeserializeOwned,
+    {
+        self.post_internal(path, body).await.map_err(|err| self.through_cb(err))
+    }
+
+    async fn post_internal<T, R>(&self, path: &str, body: &R) -> Result<T>
     where
         R: Serialize,
         T: DeserializeOwned,
     {
         let request_builder = self.request(Method::POST, path, None)?.json(body);
-        async move { request_builder.send().await?.error_for_status()?.json().await }
+
+        verify_response(request_builder.send().await, Method::POST, path)
+            .await?
+            .json()
             .await
             .http_context(Method::POST, path)
     }
 
-    pub async fn put<T, R>(&self, path: &str, body: &R) -> HttpResult<T>
+    pub async fn put<T, R>(&self, path: &str, body: &R) -> Result<T>
+    where
+        R: Serialize,
+        T: DeserializeOwned,
+    {
+        self.put_internal(path, body).await.map_err(|err| self.through_cb(err))
+    }
+
+    async fn put_internal<T, R>(&self, path: &str, body: &R) -> Result<T>
     where
         R: Serialize,
         T: DeserializeOwned,
     {
         let request_builder = self.request(Method::PUT, path, None)?.json(body);
-        async move { request_builder.send().await?.error_for_status()?.json().await }
+        verify_response(request_builder.send().await, Method::PUT, path)
+            .await?
+            .json()
             .await
             .http_context(Method::PUT, path)
     }
 
-    pub async fn put_without_response_deserialization<R>(
-        &self,
-        path: &str,
-        body: &R,
-    ) -> HttpResult<()>
+    pub async fn put_without_response_deserialization<R>(&self, path: &str, body: &R) -> Result<()>
     where
         R: Serialize,
     {
-        let request_builder = self.request(Method::PUT, path, None)?;
-        async move { request_builder.json(body).send().await?.error_for_status() }
+        self.put_without_response_deserialization_internal(path, body)
             .await
-            .http_context(Method::PUT, path)?;
+            .map_err(|err| self.through_cb(err))
+    }
 
+    async fn put_without_response_deserialization_internal<R>(
+        &self,
+        path: &str,
+        body: &R,
+    ) -> Result<()>
+    where
+        R: Serialize,
+    {
+        let request_builder =
+            self.request(Method::PUT, path, None).map_err(|err| self.through_cb(err))?;
+        verify_response(request_builder.json(body).send().await, Method::PUT, path)
+            .await
+            .map_err(|err| self.through_cb(err))?;
         Ok(())
     }
 
-    pub async fn put_text<R>(&self, path: &str, body: &R) -> HttpResult<()>
+    pub async fn put_text<R>(&self, path: &str, body: &R) -> Result<()>
+    where
+        R: ToString + ?Sized,
+    {
+        self.put_text_internal(path, body).await.map_err(|err| self.through_cb(err))
+    }
+
+    async fn put_text_internal<R>(&self, path: &str, body: &R) -> Result<()>
     where
         R: ToString + ?Sized,
     {
         let request_builder = self.request(Method::PUT, path, None)?;
-        async move { request_builder.body(body.to_string()).send().await?.error_for_status() }
-            .await
-            .http_context(Method::PUT, path)?;
+        verify_response(request_builder.body(body.to_string()).send().await, Method::PUT, path)
+            .await?;
 
         Ok(())
     }
 
-    pub async fn delete(&self, path: &str) -> HttpResult<()> {
+    pub async fn delete(&self, path: &str) -> Result<()> {
+        self.delete_internal(path).await.map_err(|err| self.through_cb(err))
+    }
+
+    async fn delete_internal(&self, path: &str) -> Result<()> {
         let request_builder = self.request(Method::DELETE, path, None)?;
-        async move { request_builder.send().await?.error_for_status() }
-            .await
-            .http_context(Method::DELETE, path)?;
+        verify_response(request_builder.send().await, Method::DELETE, path).await?;
 
         Ok(())
     }
@@ -122,7 +171,16 @@ impl Client {
         method: Method,
         path: &str,
         query: Option<&str>,
-    ) -> HttpResult<reqwest::RequestBuilder> {
+    ) -> Result<reqwest::RequestBuilder> {
+        self.request_internal(method, path, query).map_err(|err| self.through_cb(err))
+    }
+
+    fn request_internal(
+        &self,
+        method: Method,
+        path: &str,
+        query: Option<&str>,
+    ) -> Result<reqwest::RequestBuilder> {
         let mut url =
             Url::parse(&format!("{}{}", self.base_url, path)).http_context(method.clone(), path)?;
 
@@ -141,13 +199,22 @@ impl Client {
             .header(header::AUTHORIZATION, format!("Bearer {}", self.auth_token)))
     }
 
-    #[context("Getting application ID")]
-    fn application_id(&self) -> anyhow::Result<Uuid> {
-        self.application_id.context("application_id not specified")
+    pub fn register_error_cb(&mut self, cb: impl Fn(&Error) + Send + Sync + 'static) {
+        self.error_cb = Some(Box::new(cb));
     }
 
-    #[context("Getting gateway ID")]
-    fn gateway_id(&self) -> anyhow::Result<Uuid> {
-        self.gateway_id.context("gateway_id not specified")
+    fn through_cb(&self, err: Error) -> Error {
+        if let Some(cb) = &self.error_cb {
+            cb(&err);
+        }
+        err
+    }
+
+    fn application_id(&self) -> Result<Uuid> {
+        self.application_id.ok_or(Error::ApplicationIdMissing).map_err(|err| self.through_cb(err))
+    }
+
+    fn gateway_id(&self) -> Result<Uuid> {
+        self.gateway_id.ok_or(Error::GatewayIdMissing).map_err(|err| self.through_cb(err))
     }
 }

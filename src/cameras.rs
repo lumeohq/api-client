@@ -1,5 +1,4 @@
 use chrono::{DateTime, Utc};
-use fn_error_context::context;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 use serde_with::skip_serializing_none;
@@ -7,6 +6,7 @@ use url::Url;
 use uuid::Uuid;
 
 use super::{streams::Stream, Client};
+use crate::Result;
 
 #[skip_serializing_none]
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
@@ -70,60 +70,46 @@ pub struct NewLinkedCamera {
 }
 
 impl Client {
-    #[context("Reading camera {}", camera_id)]
-    pub async fn read_camera(&self, camera_id: Uuid) -> anyhow::Result<Camera> {
-        Ok(self
-            .get(&format!("/v1/apps/{}/cameras/{}", self.application_id()?, camera_id), None::<&()>)
-            .await?)
+    pub async fn read_camera(&self, camera_id: Uuid) -> Result<Camera> {
+        self.get(&format!("/v1/apps/{}/cameras/{}", self.application_id()?, camera_id), None::<&()>)
+            .await
     }
 
-    #[context("Listing cameras")]
-    pub async fn list_cameras(&self) -> anyhow::Result<Vec<Camera>> {
-        Ok(self.get(&format!("/v1/apps/{}/cameras", self.application_id()?), None::<&()>).await?)
+    pub async fn list_cameras(&self) -> Result<Vec<Camera>> {
+        self.get(&format!("/v1/apps/{}/cameras", self.application_id()?), None::<&()>).await
     }
 
-    #[context("Listing camera streams")]
-    pub async fn list_camera_streams(&self, camera_id: Uuid) -> anyhow::Result<Vec<Stream>> {
-        Ok(self
-            .get(
-                &format!("/v1/apps/{}/cameras/{}/streams", self.application_id()?, camera_id),
-                None::<&()>,
-            )
-            .await?)
+    pub async fn list_camera_streams(&self, camera_id: Uuid) -> Result<Vec<Stream>> {
+        self.get(
+            &format!("/v1/apps/{}/cameras/{}/streams", self.application_id()?, camera_id),
+            None::<&()>,
+        )
+        .await
     }
 
-    #[context("Updating camera {}", camera_id)]
-    pub async fn update_camera(
-        &self,
-        camera_id: Uuid,
-        data: &CameraData,
-    ) -> anyhow::Result<Camera> {
+    pub async fn update_camera(&self, camera_id: Uuid, data: &CameraData) -> Result<Camera> {
         let path = format!("/v1/apps/{}/cameras/{}", self.application_id()?, camera_id);
-        Ok(self.put(&path, data).await?)
+        self.put(&path, data).await
     }
 
-    #[context("Setting cameras statuses")]
-    pub async fn set_cameras_statuses(&self, cameras: &[CameraData]) -> anyhow::Result<()> {
-        Ok(self
-            .put_without_response_deserialization(
-                &format!(
-                    "/v1/apps/{}/devices/{}/cameras_statuses",
-                    self.application_id()?,
-                    self.gateway_id()?
-                ),
-                &cameras,
-            )
-            .await?)
+    pub async fn set_cameras_statuses(&self, cameras: &[CameraData]) -> Result<()> {
+        self.put_without_response_deserialization(
+            &format!(
+                "/v1/apps/{}/devices/{}/cameras_statuses",
+                self.application_id()?,
+                self.gateway_id()?
+            ),
+            &cameras,
+        )
+        .await
     }
 
-    #[context("Setting camera status")]
-    pub async fn set_camera_status(&self, camera_id: Uuid, status: &str) -> anyhow::Result<()> {
-        Ok(self
-            .put_text(
-                &format!("/v1/apps/{}/cameras/{}/status", self.application_id()?, camera_id),
-                status,
-            )
-            .await?)
+    pub async fn set_camera_status(&self, camera_id: Uuid, status: &str) -> Result<()> {
+        self.put_text(
+            &format!("/v1/apps/{}/cameras/{}/status", self.application_id()?, camera_id),
+            status,
+        )
+        .await
     }
 }
 

@@ -1,85 +1,141 @@
-use std::fmt;
+use reqwest::{Method, Response};
+use serde::{Deserialize, Serialize};
+use strum::EnumString;
+use thiserror::Error;
 
-use reqwest::Method;
+use crate::Result;
 
-#[derive(Debug)]
-pub struct HttpError {
-    inner: InnerHttpError,
-    method: Method,
-    path: String,
+#[derive(EnumString, Error, Debug)]
+#[strum(serialize_all = "kebab-case")]
+pub enum ApiError {
+    #[error("The gateway this access token belonged to has been deleted (`gateway-deleted`)")]
+    GatewayDeleted,
+    #[error("User credentials are invalid (`invalid-credentials`)")]
+    InvalidCredentials,
+    #[doc(hidden)]
+    #[strum(disabled)]
+    #[error("{message} (`{code}`)")]
+    Other { code: String, message: String },
 }
 
-impl HttpError {
-    pub fn request_method(&self) -> &Method {
-        &self.method
-    }
-
-    pub fn request_path(&self) -> &str {
-        &self.path
-    }
-
-    /// If the error comes from `reqwest`, return the inner `reqwest::Error`.
-    pub fn to_reqwest_error(&self) -> Option<&reqwest::Error> {
-        match &self.inner {
-            InnerHttpError::Url(_) | InnerHttpError::Query(_) => None,
-            InnerHttpError::Reqwest(e) => Some(e),
-        }
-    }
-
-    // Url and Query accessors left out because there's no use case yet
+// Response from server
+#[derive(Debug, Deserialize, Serialize)]
+struct ApiServerResponse {
+    code: String,
+    message: String,
 }
 
-#[derive(Debug)]
-enum InnerHttpError {
-    Url(url::ParseError),
-    Query(serde_urlencoded::ser::Error),
-    Reqwest(reqwest::Error),
-}
-
-pub(crate) trait ResultExt<T> {
-    fn http_context(self, method: Method, path: &str) -> Result<T, HttpError>;
-}
-
-impl fmt::Display for InnerHttpError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            InnerHttpError::Url(e) => e.fmt(f),
-            InnerHttpError::Query(e) => e.fmt(f),
-            InnerHttpError::Reqwest(e) => e.fmt(f),
-        }
-    }
-}
-
-impl fmt::Display for HttpError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} request to `{}` failed: {}", self.method, self.path, self.inner)
-    }
-}
-
-impl std::error::Error for HttpError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(match &self.inner {
-            InnerHttpError::Url(e) => e,
-            InnerHttpError::Query(e) => e,
-            InnerHttpError::Reqwest(e) => e,
+impl<'de> Deserialize<'de> for ApiError {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let resp = ApiServerResponse::deserialize(deserializer)?;
+        Ok(match resp.code.parse::<ApiError>() {
+            Ok(api_err) => api_err,
+            Err(_) => ApiError::Other { code: resp.code, message: resp.message },
         })
     }
 }
 
+/// Checks if response status isn't a success,
+/// and then tries to extract json error description from it
+///
+/// # Returns
+///
+/// Result with untouched [`Response`] or error if the status isn't a success
+pub(crate) async fn verify_response(
+    response: Result<Response, reqwest::Error>,
+    method: Method,
+    path: &str,
+) -> Result<Response> {
+    let method_cp = method.clone();
+    let response = response.map_err(|e| Error::Reqwest(e, ErrorDetails::new(method, path)))?;
+
+    if !response.status().is_success() {
+        let cp = method_cp.clone();
+        return Err(response.json::<ApiError>().await.map_or_else(
+            |e| Error::ErrorDeserialization(e, ErrorDetails::new(method_cp.clone(), path)),
+            |e| Error::Api(e, ErrorDetails::new(cp, path)),
+        ));
+    }
+
+    Ok(response)
+}
+
+#[derive(Debug, Clone)]
+pub struct ErrorDetails {
+    pub method: Method,
+    pub path: String,
+}
+
+impl ErrorDetails {
+    fn new(method: Method, path: &str) -> Self {
+        Self { method, path: path.to_owned() }
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum Error {
+    #[error("{} request to `{}` failed: {0}", .1.method, .1.path)]
+    Url(#[source] url::ParseError, ErrorDetails),
+    #[error("{} request to `{}` failed: {0}", .1.method, .1.path)]
+    Query(#[source] serde_urlencoded::ser::Error, ErrorDetails),
+    #[error("{} request to `{}` failed: {0}", .1.method, .1.path)]
+    Reqwest(#[source] reqwest::Error, ErrorDetails),
+    #[error("{} request to `{}` failed: {0}", .1.method, .1.path)]
+    Api(#[source] ApiError, ErrorDetails),
+    #[error("{} request to `{}` failed: {0}", .1.method, .1.path)]
+    ErrorDeserialization(#[source] reqwest::Error, ErrorDetails),
+    #[error("Application id is missing")]
+    ApplicationIdMissing,
+    #[error("Gateway id is missing")]
+    GatewayIdMissing,
+}
+
+pub(crate) trait ResultExt<T> {
+    fn http_context(self, method: Method, path: &str) -> Result<T>;
+}
+
 impl<T> ResultExt<T> for Result<T, url::ParseError> {
-    fn http_context(self, method: Method, path: &str) -> Result<T, HttpError> {
-        self.map_err(|e| HttpError { inner: InnerHttpError::Url(e), method, path: path.into() })
+    fn http_context(self, method: Method, path: &str) -> Result<T> {
+        self.map_err(|e| Error::Url(e, ErrorDetails::new(method, path)))
     }
 }
 
 impl<T> ResultExt<T> for Result<T, serde_urlencoded::ser::Error> {
-    fn http_context(self, method: Method, path: &str) -> Result<T, HttpError> {
-        self.map_err(|e| HttpError { inner: InnerHttpError::Query(e), method, path: path.into() })
+    fn http_context(self, method: Method, path: &str) -> Result<T> {
+        self.map_err(|e| Error::Query(e, ErrorDetails::new(method, path)))
     }
 }
 
 impl<T> ResultExt<T> for Result<T, reqwest::Error> {
-    fn http_context(self, method: Method, path: &str) -> Result<T, HttpError> {
-        self.map_err(|e| HttpError { inner: InnerHttpError::Reqwest(e), method, path: path.into() })
+    fn http_context(self, method: Method, path: &str) -> Result<T> {
+        self.map_err(|e| Error::Reqwest(e, ErrorDetails::new(method, path)))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn gateway_deleted() {
+        let resp =
+            ApiServerResponse { code: "gateway-deleted".to_owned(), message: Default::default() };
+
+        let error: ApiError = serde_json::from_str(&serde_json::to_string(&resp).unwrap()).unwrap();
+        assert!(matches!(error, ApiError::GatewayDeleted));
+    }
+
+    #[test]
+    fn invalid_credentials() {
+        let resp = ApiServerResponse {
+            code: "invalid-credentials".to_owned(),
+            message: Default::default(),
+        };
+
+        let error: ApiError = serde_json::from_str(&serde_json::to_string(&resp).unwrap()).unwrap();
+        assert!(matches!(error, ApiError::InvalidCredentials));
     }
 }
