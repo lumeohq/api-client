@@ -51,19 +51,26 @@ pub(crate) async fn verify_response(
     method: Method,
     path: &str,
 ) -> Result<Response> {
-    let method_cp = method.clone();
     let response = response.map_err(|e| {
         let status = e.status();
-        Error::Reqwest(e, ErrorDetails::new(method, path, status))
+        Error::Reqwest(e, ErrorDetails::new(method.clone(), path, status))
     })?;
 
     if !response.status().is_success() {
-        let cp = method_cp.clone();
-        let status = Some(response.status());
-        return Err(response.json::<ApiError>().await.map_or_else(
-            |e| Error::ErrorDeserialization(e, ErrorDetails::new(method_cp.clone(), path, status)),
-            |e| Error::Api(e, ErrorDetails::new(cp, path, None)),
-        ));
+        let details = ErrorDetails::new(method, path, Some(response.status()));
+        let body = match response.bytes().await {
+            Ok(b) => b,
+            Err(e) => return Err(Error::Reqwest(e, details)),
+        };
+
+        if body.is_empty() {
+            return Err(Error::ApiEmptyResponse(details));
+        }
+
+        match serde_json::from_slice(&body) {
+            Ok(api_error) => return Err(Error::Api(api_error, details)),
+            Err(e) => return Err(Error::ErrorDeserialization(e, details)),
+        }
     }
 
     Ok(response)
@@ -107,8 +114,10 @@ pub enum Error {
     Reqwest(#[source] reqwest::Error, ErrorDetails),
     #[error("{1}: {0}")]
     Api(#[source] ApiError, ErrorDetails),
+    #[error("{0}")]
+    ApiEmptyResponse(ErrorDetails),
     #[error("{1}: {0}")]
-    ErrorDeserialization(#[source] reqwest::Error, ErrorDetails),
+    ErrorDeserialization(#[source] serde_json::Error, ErrorDetails),
     #[error("Application id is missing")]
     ApplicationIdMissing,
     #[error("Gateway id is missing")]
