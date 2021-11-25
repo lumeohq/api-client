@@ -1,3 +1,5 @@
+use std::fmt;
+
 use reqwest::{Method, Response};
 use serde::{Deserialize, Serialize};
 use strum::EnumString;
@@ -75,17 +77,23 @@ impl ErrorDetails {
     }
 }
 
+impl fmt::Display for ErrorDetails {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} request to `{}` failed", self.method, self.path)
+    }
+}
+
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("{} request to `{}` failed: {0}", .1.method, .1.path)]
+    #[error("{1}: {0}")]
     Url(#[source] url::ParseError, ErrorDetails),
-    #[error("{} request to `{}` failed: {0}", .1.method, .1.path)]
+    #[error("{1}: {0}")]
     Query(#[source] serde_urlencoded::ser::Error, ErrorDetails),
-    #[error("{} request to `{}` failed: {0}", .1.method, .1.path)]
+    #[error("{1}: {0}")]
     Reqwest(#[source] reqwest::Error, ErrorDetails),
-    #[error("{} request to `{}` failed: {0}", .1.method, .1.path)]
+    #[error("{1}: {0}")]
     Api(#[source] ApiError, ErrorDetails),
-    #[error("{} request to `{}` failed: {0}", .1.method, .1.path)]
+    #[error("{1}: {0}")]
     ErrorDeserialization(#[source] reqwest::Error, ErrorDetails),
     #[error("Application id is missing")]
     ApplicationIdMissing,
