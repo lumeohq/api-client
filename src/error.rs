@@ -69,7 +69,7 @@ pub(crate) async fn verify_response(
 
         match serde_json::from_slice(&body) {
             Ok(api_error) => return Err(Error::Api(api_error, details)),
-            Err(e) => return Err(Error::ErrorDeserialization(e, details)),
+            Err(e) => return Err(Error::Deserialization(e, details)),
         }
     }
 
@@ -117,7 +117,7 @@ pub enum Error {
     #[error("{0}")]
     ApiEmptyResponse(ErrorDetails),
     #[error("{1}: {0}")]
-    ErrorDeserialization(#[source] serde_json::Error, ErrorDetails),
+    Deserialization(#[source] serde_json::Error, ErrorDetails),
     #[error("Application id is missing")]
     ApplicationIdMissing,
     #[error("Gateway id is missing")]
