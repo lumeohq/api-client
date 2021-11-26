@@ -1,4 +1,6 @@
-use reqwest::{Method, Response};
+use std::fmt;
+
+use reqwest::{Method, Response, StatusCode};
 use serde::{Deserialize, Serialize};
 use strum::EnumString;
 use thiserror::Error;
@@ -49,15 +51,26 @@ pub(crate) async fn verify_response(
     method: Method,
     path: &str,
 ) -> Result<Response> {
-    let method_cp = method.clone();
-    let response = response.map_err(|e| Error::Reqwest(e, ErrorDetails::new(method, path)))?;
+    let response = response.map_err(|e| {
+        let status = e.status();
+        Error::Reqwest(e, ErrorDetails::new(method.clone(), path, status))
+    })?;
 
     if !response.status().is_success() {
-        let cp = method_cp.clone();
-        return Err(response.json::<ApiError>().await.map_or_else(
-            |e| Error::ErrorDeserialization(e, ErrorDetails::new(method_cp.clone(), path)),
-            |e| Error::Api(e, ErrorDetails::new(cp, path)),
-        ));
+        let details = ErrorDetails::new(method, path, Some(response.status()));
+        let body = match response.bytes().await {
+            Ok(b) => b,
+            Err(e) => return Err(Error::Reqwest(e, details)),
+        };
+
+        if body.is_empty() {
+            return Err(Error::ApiEmptyResponse(details));
+        }
+
+        match serde_json::from_slice(&body) {
+            Ok(api_error) => return Err(Error::Api(api_error, details)),
+            Err(e) => return Err(Error::Deserialization(e, details)),
+        }
     }
 
     Ok(response)
@@ -67,26 +80,44 @@ pub(crate) async fn verify_response(
 pub struct ErrorDetails {
     pub method: Method,
     pub path: String,
+    pub status: Option<StatusCode>,
 }
 
 impl ErrorDetails {
-    fn new(method: Method, path: &str) -> Self {
-        Self { method, path: path.to_owned() }
+    fn new(method: Method, path: &str, status: Option<StatusCode>) -> Self {
+        Self { method, path: path.to_owned(), status }
+    }
+}
+
+impl fmt::Display for ErrorDetails {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.status {
+            Some(status_code) => write!(
+                f,
+                "{} request to `{}` failed with status code {}",
+                self.method, self.path, status_code,
+            ),
+            None => {
+                write!(f, "{} request to `{}` failed", self.method, self.path)
+            }
+        }
     }
 }
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("{} request to `{}` failed: {0}", .1.method, .1.path)]
+    #[error("{1}: {0}")]
     Url(#[source] url::ParseError, ErrorDetails),
-    #[error("{} request to `{}` failed: {0}", .1.method, .1.path)]
+    #[error("{1}: {0}")]
     Query(#[source] serde_urlencoded::ser::Error, ErrorDetails),
-    #[error("{} request to `{}` failed: {0}", .1.method, .1.path)]
+    #[error("{1}: {0}")]
     Reqwest(#[source] reqwest::Error, ErrorDetails),
-    #[error("{} request to `{}` failed: {0}", .1.method, .1.path)]
+    #[error("{1}: {0}")]
     Api(#[source] ApiError, ErrorDetails),
-    #[error("{} request to `{}` failed: {0}", .1.method, .1.path)]
-    ErrorDeserialization(#[source] reqwest::Error, ErrorDetails),
+    #[error("{0}")]
+    ApiEmptyResponse(ErrorDetails),
+    #[error("{1}: {0}")]
+    Deserialization(#[source] serde_json::Error, ErrorDetails),
     #[error("Application id is missing")]
     ApplicationIdMissing,
     #[error("Gateway id is missing")]
@@ -99,19 +130,22 @@ pub(crate) trait ResultExt<T> {
 
 impl<T> ResultExt<T> for Result<T, url::ParseError> {
     fn http_context(self, method: Method, path: &str) -> Result<T> {
-        self.map_err(|e| Error::Url(e, ErrorDetails::new(method, path)))
+        self.map_err(|e| Error::Url(e, ErrorDetails::new(method, path, None)))
     }
 }
 
 impl<T> ResultExt<T> for Result<T, serde_urlencoded::ser::Error> {
     fn http_context(self, method: Method, path: &str) -> Result<T> {
-        self.map_err(|e| Error::Query(e, ErrorDetails::new(method, path)))
+        self.map_err(|e| Error::Query(e, ErrorDetails::new(method, path, None)))
     }
 }
 
 impl<T> ResultExt<T> for Result<T, reqwest::Error> {
     fn http_context(self, method: Method, path: &str) -> Result<T> {
-        self.map_err(|e| Error::Reqwest(e, ErrorDetails::new(method, path)))
+        self.map_err(|e| {
+            let status = e.status();
+            Error::Reqwest(e, ErrorDetails::new(method, path, status))
+        })
     }
 }
 
