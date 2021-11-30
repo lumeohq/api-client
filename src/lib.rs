@@ -11,6 +11,7 @@ pub mod error;
 pub mod events;
 pub mod files;
 pub mod gateways;
+pub mod models;
 pub mod orgs;
 pub mod snapshots;
 pub mod streams;
