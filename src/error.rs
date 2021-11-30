@@ -14,6 +14,8 @@ pub enum ApiError {
     GatewayDeleted,
     #[error("User credentials are invalid (`invalid-credentials`)")]
     InvalidCredentials,
+    #[error("Resource not found (`resource-not-found`)")]
+    ResourceNotFound,
     #[doc(hidden)]
     #[strum(disabled)]
     #[error("{message} (`{code}`)")]
