@@ -1,2 +1,17 @@
 [alias]
 xtask = "run --package xtask --"
+
+[target.'cfg(all())']
+rustflags = [
+    "-Wrust_2018_idioms",
+    "-Wunused_qualifications",
+    "-Wclippy::cloned_instead_of_copied",
+    "-Wclippy::dbg_macro",
+    "-Wclippy::disallowed_method",
+    "-Wclippy::disallowed_type",
+    "-Wclippy::str_to_string",
+    "-Wclippy::todo",
+    "-Wclippy::unreadable_literal",
+    "-Wclippy::unseparated_literal_suffix",
+    "-Wclippy::wildcard_imports",
+]

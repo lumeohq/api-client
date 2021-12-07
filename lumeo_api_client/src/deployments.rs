@@ -134,7 +134,7 @@ where
     impl<'de> Visitor<'de> for PipelineVisitor {
         type Value = Pipeline;
 
-        fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             write!(f, "a possibly-stringified pipeline definition")
         }
 
