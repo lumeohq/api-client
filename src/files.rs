@@ -1,13 +1,15 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use strum::Display;
 use url::Url;
 use uuid::Uuid;
 
 use super::Client;
 use crate::Result;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Display, Eq, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
 pub enum FileCloudStatus {
     Disabled,
     Uploading,
@@ -89,6 +91,18 @@ impl Client {
 
     pub async fn update_file(&self, id: Uuid, file_data: &FileData) -> Result<File> {
         self.put(&format!("/v1/apps/{}/files/{}", self.application_id()?, id), file_data).await
+    }
+
+    pub async fn update_cloud_status(
+        &self,
+        id: Uuid,
+        cloud_status: &FileCloudStatus,
+    ) -> Result<()> {
+        self.put_text(
+            &format!("/v1/apps/{}/files/{}/cloud_status", self.application_id()?, id),
+            cloud_status,
+        )
+        .await
     }
 
     pub async fn delete_file(&self, id: Uuid) -> Result<()> {
