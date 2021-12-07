@@ -1,7 +1,6 @@
 use std::{collections::BTreeMap, fmt};
 
 use chrono::{DateTime, Utc};
-use lumeo_pipeline::Pipeline;
 use reqwest::Method;
 use serde::{
     de::{self, value::SeqAccessDeserializer, Deserializer, Visitor},
@@ -11,7 +10,7 @@ use serde_with::skip_serializing_none;
 use uuid::Uuid;
 
 use super::Client;
-use crate::{error::ResultExt, Result};
+use crate::{error::ResultExt, pipeline::Pipeline, Result};
 
 #[skip_serializing_none]
 #[derive(Debug, Deserialize)]
@@ -160,12 +159,12 @@ where
 #[cfg(test)]
 mod tests {
     use chrono::Utc;
-    use lumeo_pipeline::Pipeline;
     use serde::Serialize;
     use serde_json::json;
     use uuid::Uuid;
 
     use super::{Deployment, State};
+    use crate::pipeline::Pipeline;
 
     #[test]
     fn deserialize_deployment() {
