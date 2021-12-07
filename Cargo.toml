@@ -1,4 +1,7 @@
 [workspace]
-members = ["lumeo_api_client"]
+members = ["lumeo_api_client", "xtask"]
+# By default, compile everything except xtask, which should only be compiled
+# when explicitly invoked.
+default-members = ["lumeo_api_client"]
 
 resolver = "2"
