@@ -18,6 +18,6 @@ pub struct Organization {
 
 impl Client {
     pub async fn get_orgs(&self) -> Result<Vec<Organization>> {
-        self.get("/v1/orgs", Option::<&()>::None).await
+        self.get("/v1/orgs", None::<&()>).await
     }
 }

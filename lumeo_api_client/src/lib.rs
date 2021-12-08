@@ -13,6 +13,7 @@ pub mod files;
 pub mod gateways;
 pub mod models;
 pub mod orgs;
+pub mod pipeline;
 pub mod snapshots;
 pub mod streams;
 
