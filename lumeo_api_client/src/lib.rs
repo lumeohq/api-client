@@ -157,12 +157,22 @@ impl Client {
         Ok(())
     }
 
-    pub async fn delete(&self, path: &str) -> Result<()> {
-        self.delete_internal(path).await.map_err(|err| self.through_cb(err))
+    pub async fn delete<Q>(&self, path: &str, query: Option<&Q>) -> Result<()>
+    where
+        Q: Serialize,
+    {
+        self.delete_internal(path, query).await.map_err(|err| self.through_cb(err))
     }
 
-    async fn delete_internal(&self, path: &str) -> Result<()> {
-        let request_builder = self.request(Method::DELETE, path, None)?;
+    async fn delete_internal<Q>(&self, path: &str, query: Option<&Q>) -> Result<()>
+    where
+        Q: Serialize,
+    {
+        let query = query
+            .map(serde_urlencoded::to_string)
+            .transpose()
+            .http_context(Method::DELETE, path)?;
+        let request_builder = self.request(Method::DELETE, path, query.as_deref())?;
         verify_response(request_builder.send().await, Method::DELETE, path).await?;
 
         Ok(())

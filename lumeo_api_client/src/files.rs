@@ -106,6 +106,6 @@ impl Client {
     }
 
     pub async fn delete_file(&self, id: Uuid) -> Result<()> {
-        self.delete(&format!("/v1/apps/{}/files/{}", self.application_id()?, id)).await
+        self.delete(&format!("/v1/apps/{}/files/{}", self.application_id()?, id), None::<&()>).await
     }
 }
