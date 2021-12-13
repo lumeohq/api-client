@@ -76,6 +76,8 @@ pub struct ListParams {
     pub pipeline_ids: Vec<Uuid>,
 }
 
+pub type DeleteParams = ListParams;
+
 impl Client {
     pub async fn list_files(&self, params: Option<&ListParams>) -> Result<Vec<File>> {
         self.get(&format!("/v1/apps/{}/files", self.application_id()?), params).await
@@ -107,5 +109,9 @@ impl Client {
 
     pub async fn delete_file(&self, id: Uuid) -> Result<()> {
         self.delete(&format!("/v1/apps/{}/files/{}", self.application_id()?, id), None::<&()>).await
+    }
+
+    pub async fn delete_files(&self, params: &DeleteParams) -> Result<()> {
+        self.delete(&format!("/v1/apps/{}/files", self.application_id()?), Some(params)).await
     }
 }
