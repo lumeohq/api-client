@@ -104,7 +104,7 @@ impl Client {
 
     pub async fn delete_deployment(&self, id: Uuid) -> Result<()> {
         let path = format!("/v1/apps/{}/deployments/{}", self.application_id()?, id);
-        self.delete(&path).await
+        self.delete(&path, None::<&()>).await
     }
 
     pub async fn get_deployment_definition(&self, id: Uuid) -> Result<Pipeline> {
