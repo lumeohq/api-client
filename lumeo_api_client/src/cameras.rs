@@ -95,7 +95,7 @@ impl Client {
     pub async fn set_cameras_statuses(&self, cameras: &[CameraData]) -> Result<()> {
         self.put_without_response_deserialization(
             &format!(
-                "/v1/apps/{}/devices/{}/cameras_statuses",
+                "/v1/apps/{}/gateways/{}/cameras_statuses",
                 self.application_id()?,
                 self.gateway_id()?
             ),
