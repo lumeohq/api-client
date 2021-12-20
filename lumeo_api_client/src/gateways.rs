@@ -48,13 +48,13 @@ impl Client {
         application_id: Uuid,
         gateway: &NewGateway,
     ) -> Result<Gateway> {
-        self.post(&format!("/v1/apps/{}/devices", application_id), gateway).await
+        self.post(&format!("/v1/apps/{}/gateways", application_id), gateway).await
     }
 
     pub async fn list_linked_cameras(&self) -> Result<Vec<Camera>> {
         self.get(
             &format!(
-                "/v1/apps/{}/devices/{}/linked_cameras",
+                "/v1/apps/{}/gateways/{}/linked_cameras",
                 self.application_id()?,
                 self.gateway_id()?
             ),
@@ -65,7 +65,11 @@ impl Client {
 
     pub async fn update_gateway_ip_local(&self, ip: &IpAddr) -> Result<()> {
         self.put_text(
-            &format!("/v1/apps/{}/devices/{}/ip_local", self.application_id()?, self.gateway_id()?),
+            &format!(
+                "/v1/apps/{}/gateways/{}/ip_local",
+                self.application_id()?,
+                self.gateway_id()?
+            ),
             ip,
         )
         .await
@@ -73,7 +77,7 @@ impl Client {
 
     pub async fn update_gateway_ip_ext(&self, ip: &IpAddr) -> Result<()> {
         self.put_text(
-            &format!("/v1/apps/{}/devices/{}/ip_ext", self.application_id()?, self.gateway_id()?),
+            &format!("/v1/apps/{}/gateways/{}/ip_ext", self.application_id()?, self.gateway_id()?),
             ip,
         )
         .await

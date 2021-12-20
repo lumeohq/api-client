@@ -39,7 +39,7 @@ impl Client {
     ) -> Result<()> {
         self.put_without_response_deserialization(
             &format!(
-                "/v1/apps/{}/devices/{}/discovery_request/{}",
+                "/v1/apps/{}/gateways/{}/discovery_request/{}",
                 self.application_id()?,
                 self.gateway_id()?,
                 request_id
