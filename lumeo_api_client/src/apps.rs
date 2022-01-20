@@ -17,13 +17,13 @@ pub struct Application {
 }
 
 impl Client {
-    pub async fn get_app(&self, app_id: &Uuid) -> Result<Application> {
-        let path = format!("/v1/apps/{}", app_id);
+    pub async fn get_app(&self, application_id: &Uuid) -> Result<Application> {
+        let path = format!("/v1/apps/{application_id}");
         self.get(&path, None::<&()>).await
     }
 
-    pub async fn get_apps(&self, org_id: &Uuid) -> Result<Vec<Application>> {
-        let path = format!("/v1/orgs/{}/apps", org_id);
+    pub async fn get_apps(&self, organization_id: &Uuid) -> Result<Vec<Application>> {
+        let path = format!("/v1/orgs/{organization_id}/apps");
         self.get(&path, None::<&()>).await
     }
 }

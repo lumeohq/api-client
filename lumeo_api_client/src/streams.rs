@@ -44,11 +44,12 @@ pub struct Stream {
 
 impl Client {
     pub async fn create_stream(&self, stream: &StreamData) -> Result<Stream> {
-        self.post(&format!("/v1/apps/{}/streams", self.application_id()?), stream).await
+        let application_id = self.application_id()?;
+        self.post(&format!("/v1/apps/{application_id}/streams"), stream).await
     }
 
     pub async fn read_stream(&self, stream_id: Uuid) -> Result<Stream> {
-        self.get(&format!("/v1/apps/{}/streams/{}", self.application_id()?, stream_id), None::<&()>)
-            .await
+        let application_id = self.application_id()?;
+        self.get(&format!("/v1/apps/{application_id}/streams/{stream_id}"), None::<&()>).await
     }
 }

@@ -33,7 +33,7 @@ fn main() {
     };
 
     if let Err(e) = res {
-        eprintln!("{}", e);
+        eprintln!("{e}");
         process::exit(1);
     }
 }
@@ -79,7 +79,7 @@ fn configure_pipeline(pipeline_file: &str, configuration_file: &str) -> Result<(
 
     update_pipeline_def(&mut pipeline_json, &configuration)?;
 
-    println!("{}", pipeline_json);
+    println!("{pipeline_json}");
     Ok(())
 }
 

@@ -40,6 +40,7 @@ pub struct Event {
 
 impl Client {
     pub async fn create_event(&self, event: &EventData) -> Result<Event> {
-        self.post(&format!("/v1/apps/{}/events", self.application_id()?), event).await
+        let application_id = self.application_id()?;
+        self.post(&format!("/v1/apps/{application_id}/events"), event).await
     }
 }
