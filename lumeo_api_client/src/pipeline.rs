@@ -15,7 +15,7 @@ pub use node_properties::*;
 pub use pad::*;
 pub use resolution::*;
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, PartialEq, Debug, Clone)]
 pub struct Pipeline {
     nodes: BTreeMap<String, Node>,
 }
