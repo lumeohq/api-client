@@ -80,38 +80,45 @@ pub type DeleteParams = ListParams;
 
 impl Client {
     pub async fn list_files(&self, params: Option<&ListParams>) -> Result<Vec<File>> {
-        self.get(&format!("/v1/apps/{}/files", self.application_id()?), params).await
+        let application_id = self.application_id()?;
+        self.get(&format!("/v1/apps/{application_id}/files"), params).await
     }
 
     pub async fn create_file(&self, file_data: &FileData) -> Result<File> {
-        self.post(&format!("/v1/apps/{}/files", self.application_id()?), file_data).await
+        let application_id = self.application_id()?;
+        self.post(&format!("/v1/apps/{application_id}/files"), file_data).await
     }
 
-    pub async fn read_file(&self, id: Uuid) -> Result<File> {
-        self.get(&format!("/v1/apps/{}/files/{}", self.application_id()?, id), None::<&()>).await
+    pub async fn read_file(&self, file_id: Uuid) -> Result<File> {
+        let application_id = self.application_id()?;
+        self.get(&format!("/v1/apps/{application_id}/files/{file_id}"), None::<&()>).await
     }
 
-    pub async fn update_file(&self, id: Uuid, file_data: &FileData) -> Result<File> {
-        self.put(&format!("/v1/apps/{}/files/{}", self.application_id()?, id), file_data).await
+    pub async fn update_file(&self, file_id: Uuid, file_data: &FileData) -> Result<File> {
+        let application_id = self.application_id()?;
+        self.put(&format!("/v1/apps/{application_id}/files/{file_id}"), file_data).await
     }
 
     pub async fn update_cloud_status(
         &self,
-        id: Uuid,
+        file_id: Uuid,
         cloud_status: &FileCloudStatus,
     ) -> Result<()> {
+        let application_id = self.application_id()?;
         self.put_text(
-            &format!("/v1/apps/{}/files/{}/cloud_status", self.application_id()?, id),
+            &format!("/v1/apps/{application_id}/files/{file_id}/cloud_status"),
             cloud_status,
         )
         .await
     }
 
-    pub async fn delete_file(&self, id: Uuid) -> Result<()> {
-        self.delete(&format!("/v1/apps/{}/files/{}", self.application_id()?, id), None::<&()>).await
+    pub async fn delete_file(&self, file_id: Uuid) -> Result<()> {
+        let application_id = self.application_id()?;
+        self.delete(&format!("/v1/apps/{application_id}/files/{file_id}"), None::<&()>).await
     }
 
     pub async fn delete_files(&self, params: &DeleteParams) -> Result<()> {
-        self.delete(&format!("/v1/apps/{}/files", self.application_id()?), Some(params)).await
+        let application_id = self.application_id()?;
+        self.delete(&format!("/v1/apps/{application_id}/files"), Some(params)).await
     }
 }

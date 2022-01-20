@@ -37,10 +37,10 @@ impl FromStr for Crop {
                     (Ok(left), Ok(right), Ok(top), Ok(bottom)) => {
                         Ok(Crop { top, bottom, left, right })
                     }
-                    _ => Err(format!("Failed to parse crop region string: {}", s)),
+                    _ => Err(format!("Failed to parse crop region string: {s}")),
                 }
             }
-            _ => Err(format!("Bad resolution format: {}", s)),
+            _ => Err(format!("Bad resolution format: {s}")),
         }
     }
 }
@@ -50,7 +50,8 @@ impl Serialize for Crop {
     where
         S: serde::ser::Serializer,
     {
-        let s = format!("{}:{}:{}:{}", self.left, self.right, self.top, self.bottom);
+        let Self { top, bottom, left, right } = self;
+        let s = format!("{left}:{right}:{top}:{bottom}");
 
         serializer.serialize_str(&s)
     }

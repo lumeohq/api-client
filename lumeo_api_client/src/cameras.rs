@@ -71,45 +71,41 @@ pub struct NewLinkedCamera {
 
 impl Client {
     pub async fn read_camera(&self, camera_id: Uuid) -> Result<Camera> {
-        self.get(&format!("/v1/apps/{}/cameras/{}", self.application_id()?, camera_id), None::<&()>)
-            .await
+        let application_id = self.application_id()?;
+        self.get(&format!("/v1/apps/{application_id}/cameras/{camera_id}"), None::<&()>).await
     }
 
     pub async fn list_cameras(&self) -> Result<Vec<Camera>> {
-        self.get(&format!("/v1/apps/{}/cameras", self.application_id()?), None::<&()>).await
+        let application_id = self.application_id()?;
+        self.get(&format!("/v1/apps/{application_id}/cameras"), None::<&()>).await
     }
 
     pub async fn list_camera_streams(&self, camera_id: Uuid) -> Result<Vec<Stream>> {
-        self.get(
-            &format!("/v1/apps/{}/cameras/{}/streams", self.application_id()?, camera_id),
-            None::<&()>,
-        )
-        .await
+        let application_id = self.application_id()?;
+        self.get(&format!("/v1/apps/{application_id}/cameras/{camera_id}/streams"), None::<&()>)
+            .await
     }
 
     pub async fn update_camera(&self, camera_id: Uuid, data: &CameraData) -> Result<Camera> {
-        let path = format!("/v1/apps/{}/cameras/{}", self.application_id()?, camera_id);
+        let application_id = self.application_id()?;
+        let path = format!("/v1/apps/{application_id}/cameras/{camera_id}");
         self.put(&path, data).await
     }
 
     pub async fn set_cameras_statuses(&self, cameras: &[CameraData]) -> Result<()> {
+        let application_id = self.application_id()?;
+        let gateway_id = self.gateway_id()?;
         self.put_without_response_deserialization(
-            &format!(
-                "/v1/apps/{}/gateways/{}/cameras_statuses",
-                self.application_id()?,
-                self.gateway_id()?
-            ),
+            &format!("/v1/apps/{application_id}/gateways/{gateway_id}/cameras_statuses"),
             &cameras,
         )
         .await
     }
 
     pub async fn set_camera_status(&self, camera_id: Uuid, status: &str) -> Result<()> {
-        self.put_text(
-            &format!("/v1/apps/{}/cameras/{}/status", self.application_id()?, camera_id),
-            status,
-        )
-        .await
+        let application_id = self.application_id()?;
+        self.put_text(&format!("/v1/apps/{application_id}/cameras/{camera_id}/status"), status)
+            .await
     }
 }
 

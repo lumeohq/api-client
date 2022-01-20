@@ -37,12 +37,11 @@ impl Client {
         request_id: Uuid,
         data: &DiscoveryRequestData,
     ) -> Result<()> {
+        let application_id = self.application_id()?;
+        let gateway_id = self.gateway_id()?;
         self.put_without_response_deserialization(
             &format!(
-                "/v1/apps/{}/gateways/{}/discovery_request/{}",
-                self.application_id()?,
-                self.gateway_id()?,
-                request_id
+                "/v1/apps/{application_id}/gateways/{gateway_id}/discovery_request/{request_id}"
             ),
             data,
         )

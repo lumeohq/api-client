@@ -68,11 +68,12 @@ pub enum Format {
 }
 
 impl Client {
-    pub async fn read_model(&self, id: Uuid) -> Result<Model> {
-        self.get(&format!("/v1/apps/{}/models/{}", self.application_id()?, id), None::<&()>).await
+    pub async fn read_model(&self, model_id: Uuid) -> Result<Model> {
+        let application_id = self.application_id()?;
+        self.get(&format!("/v1/apps/{application_id}/models/{model_id}"), None::<&()>).await
     }
 
-    pub async fn read_marketplace_model(&self, id: Uuid) -> Result<Model> {
-        self.get(&format!("/v1/marketplace/models/{}", id), None::<&()>).await
+    pub async fn read_marketplace_model(&self, model_id: Uuid) -> Result<Model> {
+        self.get(&format!("/v1/marketplace/models/{model_id}"), None::<&()>).await
     }
 }

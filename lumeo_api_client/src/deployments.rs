@@ -81,45 +81,57 @@ pub struct ListParams {
 
 impl Client {
     pub async fn get_deployments(&self, filter: &ListParams) -> Result<Vec<Deployment>> {
-        let path = format!("/v1/apps/{}/deployments", self.application_id()?);
+        let application_id = self.application_id()?;
+        let path = format!("/v1/apps/{application_id}/deployments");
         self.get(&path, Some(&filter)).await
     }
 
     pub async fn create_deployment(&self, data: &NewDeployment) -> Result<Deployment> {
-        let path = format!("/v1/apps/{}/deployments", self.application_id()?);
+        let application_id = self.application_id()?;
+        let path = format!("/v1/apps/{application_id}/deployments");
         self.post(&path, data).await
     }
 
     // FIXME: Make method naming consistent for all methods. It is either create/read/update/delete
     //        or post/get/put/delete.
-    pub async fn get_deployment(&self, id: Uuid) -> Result<Deployment> {
-        let path = format!("/v1/apps/{}/deployments/{}", self.application_id()?, id);
+    pub async fn get_deployment(&self, deployment_id: Uuid) -> Result<Deployment> {
+        let application_id = self.application_id()?;
+        let path = format!("/v1/apps/{application_id}/deployments/{deployment_id}");
         self.get(&path, None::<&()>).await
     }
 
-    pub async fn update_deployment(&self, id: Uuid, data: &DeploymentData) -> Result<Deployment> {
-        let path = format!("/v1/apps/{}/deployments/{}", self.application_id()?, id);
+    pub async fn update_deployment(
+        &self,
+        deployment_id: Uuid,
+        data: &DeploymentData,
+    ) -> Result<Deployment> {
+        let application_id = self.application_id()?;
+        let path = format!("/v1/apps/{application_id}/deployments/{deployment_id}");
         self.put(&path, data).await
     }
 
-    pub async fn delete_deployment(&self, id: Uuid) -> Result<()> {
-        let path = format!("/v1/apps/{}/deployments/{}", self.application_id()?, id);
+    pub async fn delete_deployment(&self, deployment_id: Uuid) -> Result<()> {
+        let application_id = self.application_id()?;
+        let path = format!("/v1/apps/{application_id}/deployments/{deployment_id}");
         self.delete(&path, None::<&()>).await
     }
 
-    pub async fn get_deployment_definition(&self, id: Uuid) -> Result<Pipeline> {
-        let path = format!("/v1/apps/{}/deployments/{}/definition", self.application_id()?, id);
+    pub async fn get_deployment_definition(&self, deployment_id: Uuid) -> Result<Pipeline> {
+        let application_id = self.application_id()?;
+        let path = format!("/v1/apps/{application_id}/deployments/{deployment_id}/definition");
         self.get(&path, None::<&()>).await
     }
 
-    pub async fn start_deployment(&self, id: Uuid) -> Result<()> {
-        let path = format!("/v1/apps/{}/deployments/{}/start", self.application_id()?, id);
+    pub async fn start_deployment(&self, deployment_id: Uuid) -> Result<()> {
+        let application_id = self.application_id()?;
+        let path = format!("/v1/apps/{application_id}/deployments/{deployment_id}/start");
         self.request(Method::POST, &path, None)?.send().await.http_context(Method::POST, &path)?;
         Ok(())
     }
 
-    pub async fn stop_deployment(&self, id: Uuid) -> Result<()> {
-        let path = format!("/v1/apps/{}/deployments/{}/stop", self.application_id()?, id);
+    pub async fn stop_deployment(&self, deployment_id: Uuid) -> Result<()> {
+        let application_id = self.application_id()?;
+        let path = format!("/v1/apps/{application_id}/deployments/{deployment_id}/stop");
         self.request(Method::POST, &path, None)?.send().await.http_context(Method::POST, &path)?;
         Ok(())
     }

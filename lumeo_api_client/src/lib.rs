@@ -198,7 +198,7 @@ impl Client {
 
         if let Some(q2) = query {
             let full_query = match url.query() {
-                Some(q1) => format!("{}&{}", q1, q2),
+                Some(q1) => format!("{q1}&{q2}"),
                 None => q2.to_owned(),
             };
 
