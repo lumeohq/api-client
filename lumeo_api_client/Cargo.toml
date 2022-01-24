@@ -15,6 +15,6 @@ serde = { version = "1.0.126", features = ["derive"] }
 serde_json = "1.0.64"
 serde_urlencoded = { git = "https://github.com/lumeohq/serde_urlencoded", rev = "5c66155" }
 serde_with = "1.9.4"
-strum = { version = "0.22.0", features = ["derive"] }
+strum = { version = "0.23.0", features = ["derive"] }
 url = { version = "2.2.2", features = ["serde"] }
 uuid = { version = "0.8.2", features = ["serde"] }
