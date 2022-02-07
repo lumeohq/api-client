@@ -196,6 +196,18 @@ mod tests {
     use super::*;
 
     #[test]
+    fn resource_not_found() {
+        let resp = ApiServerResponse {
+            code: "resource-not-found".to_owned(),
+            context: serde_json::json!({ "resource": "deployment" }).into(),
+            ..Default::default()
+        };
+
+        let error: ApiError = serde_json::from_str(&serde_json::to_string(&resp).unwrap()).unwrap();
+        assert!(matches!(error, ApiError::ResourceNotFound(ResourceNotFound::DeploymentNotFound)));
+    }
+
+    #[test]
     fn gateway_deleted() {
         let resp = ApiServerResponse { code: "gateway-deleted".to_owned(), ..Default::default() };
 
