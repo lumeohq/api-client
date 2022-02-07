@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 use strum::EnumString;
 use thiserror::Error;
 
+const RESOURCE_KEY: &str = "resource";
+
 use crate::Result;
 
 #[derive(EnumString, Error, Debug)]
@@ -20,6 +22,28 @@ pub enum ApiError {
     #[strum(disabled)]
     #[error("{message} (`{code}`)")]
     Other { code: String, message: String },
+}
+
+#[derive(Debug, Error, EnumString)]
+pub enum ResourceNotFound {
+    #[error("Deployment")]
+    #[strum(serialize = "deployment")]
+    DeploymentNotFound,
+    #[doc(hidden)]
+    #[strum(disabled)]
+    #[error("Other({0})")]
+    Other(String),
+}
+
+impl ResourceNotFound {
+    fn from_context(context: serde_json::Value) -> Option<Self> {
+        let resource = context.as_object()?.get(RESOURCE_KEY)?.as_str()?;
+
+        let resource_not_found = resource
+            .parse::<ResourceNotFound>()
+            .unwrap_or_else(|_| ResourceNotFound::Other(resource.to_owned()));
+        Some(resource_not_found)
+    }
 }
 
 // Response from server
