@@ -2,31 +2,62 @@ use std::fmt;
 
 use reqwest::{Method, Response, StatusCode};
 use serde::{Deserialize, Serialize};
-use strum::EnumString;
+use strum::{AsRefStr, EnumString};
 use thiserror::Error;
+
+const RESOURCE_KEY: &str = "resource";
 
 use crate::Result;
 
-#[derive(EnumString, Error, Debug)]
+#[derive(AsRefStr, Error, Debug)]
 #[strum(serialize_all = "kebab-case")]
 pub enum ApiError {
     #[error("The gateway this access token belonged to has been deleted (`gateway-deleted`)")]
     GatewayDeleted,
     #[error("User credentials are invalid (`invalid-credentials`)")]
     InvalidCredentials,
-    #[error("Resource not found (`resource-not-found`)")]
-    ResourceNotFound,
+    #[error("Resource not found (`resource-not-found`), resource: {0}")]
+    ResourceNotFound(#[source] ResourceNotFound),
     #[doc(hidden)]
     #[strum(disabled)]
     #[error("{message} (`{code}`)")]
     Other { code: String, message: String },
 }
 
+#[derive(EnumString, Debug, Error)]
+pub enum ResourceNotFound {
+    #[error("Deployment")]
+    #[strum(serialize = "deployment")]
+    DeploymentNotFound,
+    #[doc(hidden)]
+    #[strum(disabled)]
+    #[error("Other({0})")]
+    Other(String),
+}
+
+impl ResourceNotFound {
+    fn from_context(context: serde_json::Value) -> Option<Self> {
+        let resource = context.as_object()?.get(RESOURCE_KEY)?.as_str()?;
+
+        let resource_not_found = resource
+            .parse::<ResourceNotFound>()
+            .unwrap_or_else(|_| ResourceNotFound::Other(resource.to_owned()));
+        Some(resource_not_found)
+    }
+}
+
+impl Default for ResourceNotFound {
+    fn default() -> Self {
+        Self::Other("".to_owned())
+    }
+}
+
 // Response from server
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Default)]
 struct ApiServerResponse {
     code: String,
     message: String,
+    context: Option<serde_json::Value>,
 }
 
 impl<'de> Deserialize<'de> for ApiError {
@@ -34,10 +65,19 @@ impl<'de> Deserialize<'de> for ApiError {
     where
         D: serde::Deserializer<'de>,
     {
-        let resp = ApiServerResponse::deserialize(deserializer)?;
-        Ok(match resp.code.parse::<ApiError>() {
-            Ok(api_err) => api_err,
-            Err(_) => ApiError::Other { code: resp.code, message: resp.message },
+        let ApiServerResponse { code, message, context } =
+            ApiServerResponse::deserialize(deserializer)?;
+
+        Ok(if code == ApiError::GatewayDeleted.as_ref() {
+            ApiError::GatewayDeleted
+        } else if code == ApiError::InvalidCredentials.as_ref() {
+            ApiError::InvalidCredentials
+        } else if code == ApiError::ResourceNotFound(Default::default()).as_ref() {
+            context
+                .and_then(ResourceNotFound::from_context)
+                .map_or_else(|| ApiError::Other { code, message }, ApiError::ResourceNotFound)
+        } else {
+            ApiError::Other { code, message }
         })
     }
 }
@@ -156,9 +196,20 @@ mod tests {
     use super::*;
 
     #[test]
+    fn resource_not_found() {
+        let resp = ApiServerResponse {
+            code: "resource-not-found".to_owned(),
+            context: serde_json::json!({ "resource": "deployment" }).into(),
+            ..Default::default()
+        };
+
+        let error: ApiError = serde_json::from_str(&serde_json::to_string(&resp).unwrap()).unwrap();
+        assert!(matches!(error, ApiError::ResourceNotFound(ResourceNotFound::DeploymentNotFound)));
+    }
+
+    #[test]
     fn gateway_deleted() {
-        let resp =
-            ApiServerResponse { code: "gateway-deleted".to_owned(), message: Default::default() };
+        let resp = ApiServerResponse { code: "gateway-deleted".to_owned(), ..Default::default() };
 
         let error: ApiError = serde_json::from_str(&serde_json::to_string(&resp).unwrap()).unwrap();
         assert!(matches!(error, ApiError::GatewayDeleted));
@@ -166,10 +217,8 @@ mod tests {
 
     #[test]
     fn invalid_credentials() {
-        let resp = ApiServerResponse {
-            code: "invalid-credentials".to_owned(),
-            message: Default::default(),
-        };
+        let resp =
+            ApiServerResponse { code: "invalid-credentials".to_owned(), ..Default::default() };
 
         let error: ApiError = serde_json::from_str(&serde_json::to_string(&resp).unwrap()).unwrap();
         assert!(matches!(error, ApiError::InvalidCredentials));
