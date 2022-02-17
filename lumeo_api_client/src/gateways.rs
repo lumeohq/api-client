@@ -51,6 +51,12 @@ impl Client {
         self.post(&format!("/v1/apps/{application_id}/gateways"), gateway).await
     }
 
+    pub async fn read_gateway(&self) -> Result<Gateway> {
+        let application_id = self.application_id()?;
+        let gateway_id = self.gateway_id()?;
+        self.get(&format!("/v1/apps/{application_id}/gateways/{gateway_id}"), None::<&()>).await
+    }
+
     pub async fn list_linked_cameras(&self) -> Result<Vec<Camera>> {
         let application_id = self.application_id()?;
         let gateway_id = self.gateway_id()?;
