@@ -39,7 +39,9 @@ pub struct Gateway {
     pub ip_local: Option<String>,
     pub ip_ext: Option<String>,
     pub mac_address: Option<String>,
-    pub access_token: String,
+    // Access token is `Some` only in response from `create` route.
+    pub access_token: Option<String>,
+    pub version: Option<String>,
 }
 
 impl Client {
