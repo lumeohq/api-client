@@ -39,7 +39,9 @@ pub struct Gateway {
     pub ip_local: Option<String>,
     pub ip_ext: Option<String>,
     pub mac_address: Option<String>,
-    pub access_token: String,
+    // Access token is `Some` only in response from `create` route.
+    pub access_token: Option<String>,
+    pub version: Option<String>,
 }
 
 impl Client {
@@ -49,6 +51,12 @@ impl Client {
         gateway: &NewGateway,
     ) -> Result<Gateway> {
         self.post(&format!("/v1/apps/{application_id}/gateways"), gateway).await
+    }
+
+    pub async fn read_gateway(&self) -> Result<Gateway> {
+        let application_id = self.application_id()?;
+        let gateway_id = self.gateway_id()?;
+        self.get(&format!("/v1/apps/{application_id}/gateways/{gateway_id}"), None::<&()>).await
     }
 
     pub async fn list_linked_cameras(&self) -> Result<Vec<Camera>> {
