@@ -1,5 +1,6 @@
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_with::skip_serializing_none;
+use strum::AsRefStr;
 use url::Url;
 use uuid::Uuid;
 
@@ -8,8 +9,9 @@ use crate::pipeline::{
     transform_properties::{Crop, FlipDirection},
 };
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AsRefStr)]
 #[serde(tag = "source_type", rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
 pub enum VideoSourceProperties {
     Camera(CameraProperties),
     Stream(InputStreamProperties),
