@@ -37,14 +37,23 @@ impl Client {
         application_id: Option<Uuid>,
         gateway_id: Option<Uuid>,
     ) -> Self {
-        Self {
-            http_client: reqwest::Client::new(),
+        Self::with_http_client(
             base_url,
             auth_token,
             application_id,
             gateway_id,
-            error_cb: None,
-        }
+            reqwest::Client::new(),
+        )
+    }
+
+    pub fn with_http_client(
+        base_url: String,
+        auth_token: String,
+        application_id: Option<Uuid>,
+        gateway_id: Option<Uuid>,
+        http_client: reqwest::Client,
+    ) -> Self {
+        Self { http_client, base_url, auth_token, application_id, gateway_id, error_cb: None }
     }
 
     pub async fn get<T, Q>(&self, path: &str, query: Option<&Q>) -> Result<T>
