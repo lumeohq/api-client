@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use error::ResultExt;
 use reqwest::{header, Method, Url};
 use serde::{de::DeserializeOwned, Serialize};
@@ -21,6 +23,8 @@ use error::{verify_response, Error};
 type Callback = Box<dyn Fn(&Error) + Send + Sync + 'static>;
 pub type Result<T, E = Error> = std::result::Result<T, E>;
 
+const DEFAULT_TIMEOUT: Duration = Duration::from_secs(10);
+
 pub struct Client {
     http_client: reqwest::Client,
     base_url: String,
@@ -36,14 +40,14 @@ impl Client {
         auth_token: String,
         application_id: Option<Uuid>,
         gateway_id: Option<Uuid>,
-    ) -> Self {
-        Self::with_http_client(
+    ) -> reqwest::Result<Self> {
+        Ok(Self::with_http_client(
             base_url,
             auth_token,
             application_id,
             gateway_id,
-            reqwest::Client::new(),
-        )
+            reqwest::Client::builder().timeout(DEFAULT_TIMEOUT).build()?,
+        ))
     }
 
     pub fn with_http_client(
