@@ -17,6 +17,24 @@ pub enum VideoSourceProperties {
     Stream(InputStreamProperties),
 }
 
+impl VideoSourceProperties {
+    pub fn uri(&self) -> Option<&Url> {
+        use VideoSourceProperties::*;
+        match self {
+            Camera(CameraProperties { runtime, .. }) => Some(runtime.as_ref()?.uri()),
+            Stream(InputStreamProperties { runtime, .. }) => runtime.as_ref()?.uri(),
+        }
+    }
+
+    pub fn name(&self) -> Option<&str> {
+        use VideoSourceProperties::*;
+        match self {
+            Camera(CameraProperties { runtime, .. }) => Some(runtime.as_ref()?.name()),
+            Stream(InputStreamProperties { runtime, .. }) => runtime.as_ref()?.name(),
+        }
+    }
+}
+
 #[skip_serializing_none]
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct CommonVideoSourceProperties {
@@ -88,11 +106,45 @@ pub enum CameraRuntime {
     Csi(CsiCameraRuntime),
 }
 
+impl CameraRuntime {
+    pub fn uri(&self) -> &Url {
+        use CameraRuntime::*;
+        match self {
+            Usb(UsbCameraRuntime { uri, .. }) | Csi(CsiCameraRuntime { uri, .. }) => uri,
+        }
+    }
+
+    pub fn name(&self) -> &str {
+        use CameraRuntime::*;
+        match self {
+            Usb(UsbCameraRuntime { name, .. }) | Csi(CsiCameraRuntime { name, .. }) => name,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum InputStreamRuntime {
     Rtsp(InputRtspStreamRuntime),
     WebRtc(InputWebRtcStreamRuntime),
+}
+
+impl InputStreamRuntime {
+    pub fn uri(&self) -> Option<&Url> {
+        use InputStreamRuntime::*;
+        match self {
+            Rtsp(InputRtspStreamRuntime { uri, .. }) => Some(uri),
+            _ => None,
+        }
+    }
+
+    pub fn name(&self) -> Option<&str> {
+        use InputStreamRuntime::*;
+        match self {
+            Rtsp(InputRtspStreamRuntime { name, .. }) => Some(name),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
