@@ -20,6 +20,7 @@ pub struct Model {
     pub metadata_file_url: Option<String>,
     pub parameters: BTreeMap<String, String>,
     pub gallery_img_url: Option<String>,
+    pub inference_config: Option<ModelInferenceConfig>,
     pub capability: Capability,
     pub architecture: Architecture,
     pub format: Format,
