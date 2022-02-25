@@ -86,6 +86,7 @@ pub enum Architecture {
 #[serde(rename_all = "lowercase")]
 pub enum Format {
     Caffe,
+    Etlt,
     YoloNative,
     Onnx,
     Uff,
