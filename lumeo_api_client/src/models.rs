@@ -5,8 +5,7 @@ use serde::Deserialize;
 use uuid::Uuid;
 
 use super::Client;
-use crate::Result;
-use crate::pipeline::Resolution;
+use crate::{pipeline::Resolution, Result};
 
 #[derive(Debug, Deserialize)]
 pub struct Model {
@@ -18,6 +17,7 @@ pub struct Model {
     pub description: Option<String>,
     pub weights_file_url: String,
     pub metadata_file_url: Option<String>,
+    pub labels_file_url: Option<String>,
     pub parameters: BTreeMap<String, String>,
     pub gallery_img_url: Option<String>,
     pub inference_config: Option<ModelInferenceConfig>,
