@@ -13,6 +13,7 @@ pub mod error;
 pub mod events;
 pub mod files;
 pub mod gateways;
+pub mod metrics;
 pub mod models;
 pub mod orgs;
 pub mod pipeline;
@@ -92,6 +93,15 @@ impl Client {
         self.post_internal(path, body).await.map_err(|err| self.through_cb(err))
     }
 
+    pub async fn post_without_response_deserialization<R>(&self, path: &str, body: &R) -> Result<()>
+    where
+        R: Serialize,
+    {
+        self.request_without_response_deserialization_internal(Method::POST, path, body)
+            .await
+            .map_err(|err| self.through_cb(err))
+    }
+
     async fn post_internal<T, R>(&self, path: &str, body: &R) -> Result<T>
     where
         R: Serialize,
@@ -131,13 +141,14 @@ impl Client {
     where
         R: Serialize,
     {
-        self.put_without_response_deserialization_internal(path, body)
+        self.request_without_response_deserialization_internal(Method::PUT, path, body)
             .await
             .map_err(|err| self.through_cb(err))
     }
 
-    async fn put_without_response_deserialization_internal<R>(
+    async fn request_without_response_deserialization_internal<R>(
         &self,
+        method: Method,
         path: &str,
         body: &R,
     ) -> Result<()>
@@ -145,8 +156,8 @@ impl Client {
         R: Serialize,
     {
         let request_builder =
-            self.request(Method::PUT, path, None).map_err(|err| self.through_cb(err))?;
-        verify_response(request_builder.json(body).send().await, Method::PUT, path)
+            self.request(method.clone(), path, None).map_err(|err| self.through_cb(err))?;
+        verify_response(request_builder.json(body).send().await, method, path)
             .await
             .map_err(|err| self.through_cb(err))?;
         Ok(())
