@@ -18,6 +18,7 @@ pub struct Deployment {
     pub id: Uuid,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    pub name: String,
     pub pipeline_id: Uuid,
     #[serde(alias = "device_id")]
     pub gateway_id: Uuid,
@@ -201,6 +202,7 @@ mod tests {
             "id": Uuid::nil(),
             "created_at": timestamp,
             "updated_at": timestamp,
+            "name": "My deployment",
             "pipeline_id": Uuid::nil(),
             "device_id": Uuid::nil(),
             "state": State::Stopped,
@@ -214,6 +216,7 @@ mod tests {
             "id": Uuid::nil(),
             "created_at": timestamp,
             "updated_at": timestamp,
+            "name": "My deployment",
             "pipeline_id": Uuid::nil(),
             "device_id": Uuid::nil(),
             "state": State::Stopped,
