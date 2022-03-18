@@ -17,12 +17,12 @@ pub struct Application {
 }
 
 impl Client {
-    pub async fn get_app(&self, application_id: &Uuid) -> Result<Application> {
+    pub async fn read_application(&self, application_id: Uuid) -> Result<Application> {
         let path = format!("/v1/apps/{application_id}");
         self.get(&path, None::<&()>).await
     }
 
-    pub async fn get_apps(&self, organization_id: &Uuid) -> Result<Vec<Application>> {
+    pub async fn list_applications(&self, organization_id: Uuid) -> Result<Vec<Application>> {
         let path = format!("/v1/orgs/{organization_id}/apps");
         self.get(&path, None::<&()>).await
     }
