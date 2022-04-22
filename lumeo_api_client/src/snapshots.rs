@@ -41,7 +41,7 @@ impl Client {
         let application_id = self.application_id()?;
         self.put_text(
             &format!("/v1/apps/{application_id}/cameras/{camera_id}/snapshot_file_id"),
-            &snapshot_file_id.to_hyphenated(),
+            &snapshot_file_id.hyphenated(),
         )
         .await
     }
@@ -54,7 +54,7 @@ impl Client {
         let application_id = self.application_id()?;
         self.put_text(
             &format!("/v1/apps/{application_id}/streams/{stream_id}/snapshot_file_id"),
-            &snapshot_file_id.to_hyphenated(),
+            &snapshot_file_id.hyphenated(),
         )
         .await
     }
