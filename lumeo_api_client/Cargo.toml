@@ -18,3 +18,8 @@ serde_with = "1.12.1"
 strum = { version = "0.24.0", features = ["derive"] }
 url = { version = "2.2.2", features = ["serde"] }
 uuid = { version = "1.0.0", features = ["serde"] }
+# This allows deriving `sqlx::Type` to share types with `api-server`.
+sqlx = {version = "0.5.13", default-features = false, features = ["macros", "runtime-tokio-rustls"], optional = true }
+
+[features]
+api-server = ["sqlx"]
