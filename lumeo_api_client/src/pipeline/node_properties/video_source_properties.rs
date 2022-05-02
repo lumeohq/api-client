@@ -125,6 +125,7 @@ impl CameraRuntime {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum InputStreamRuntime {
+    File(InputFileStreamRuntime),
     Rtsp(InputRtspStreamRuntime),
     WebRtc(InputWebRtcStreamRuntime),
 }
@@ -133,16 +134,18 @@ impl InputStreamRuntime {
     pub fn uri(&self) -> Option<&Url> {
         use InputStreamRuntime::*;
         match self {
+            File(InputFileStreamRuntime { uri, .. }) => Some(uri),
             Rtsp(InputRtspStreamRuntime { uri, .. }) => Some(uri),
-            _ => None,
+            WebRtc(_) => None,
         }
     }
 
     pub fn name(&self) -> Option<&str> {
         use InputStreamRuntime::*;
         match self {
+            File(InputFileStreamRuntime { name, .. }) => Some(name),
             Rtsp(InputRtspStreamRuntime { name, .. }) => Some(name),
-            _ => None,
+            WebRtc(_) => None,
         }
     }
 }
@@ -183,6 +186,17 @@ pub struct InputRtspStreamRuntime {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct InputWebRtcStreamRuntime {
     // TODO: define how do we use WebRTC streams as inputs
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct InputFileStreamRuntime {
+    /// File stream URI.
+    ///
+    /// Example: "file:///home/lumeo/file.mp4"
+    pub uri: Url,
+
+    /// Stream name.
+    pub name: String,
 }
 
 // FIXME: replace manual deserialization with

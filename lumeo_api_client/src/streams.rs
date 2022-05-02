@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use strum::{AsRefStr, EnumString};
 use url::Url;
 use uuid::Uuid;
 
@@ -9,12 +10,12 @@ use crate::Result;
 #[derive(Serialize)]
 pub struct StreamData {
     pub name: Option<String>,
-    pub source: String,
-    pub stream_type: String,
+    pub source: StreamSource,
+    pub stream_type: StreamType,
     #[serde(rename = "device_id")]
     pub gateway_id: Option<Uuid>,
-    pub uri: Option<Url>,
-    pub status: Option<String>,
+    pub uri: Url,
+    pub status: Option<StreamStatus>,
     pub camera_id: Option<Uuid>,
     pub deployment_id: Option<Uuid>,
     pub node: Option<String>,
@@ -29,8 +30,8 @@ pub struct Stream {
     pub updated_at: DateTime<Utc>,
     pub application_id: Uuid,
     pub name: String,
-    pub source: String,
-    pub stream_type: String,
+    pub source: StreamSource,
+    pub stream_type: StreamType,
     #[serde(alias = "device_id")]
     pub gateway_id: Option<Uuid>,
     pub uri: Option<Url>,
@@ -40,6 +41,38 @@ pub struct Stream {
     pub node: Option<String>,
     pub configuration: Option<String>,
     pub snapshot_file_id: Option<Uuid>,
+}
+
+#[derive(Deserialize, Serialize, Clone, Copy, PartialEq, Debug, EnumString)]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[cfg_attr(feature = "sqlx", sqlx(type_name = "stream_type", rename_all = "snake_case"))]
+pub enum StreamType {
+    Rtsp,
+    Webrtc,
+    File,
+}
+
+#[derive(Deserialize, Serialize, Clone, Copy, PartialEq, Debug)]
+#[serde(rename_all = "snake_case")]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[cfg_attr(feature = "sqlx", sqlx(type_name = "stream_source", rename_all = "snake_case"))]
+pub enum StreamSource {
+    CameraStream,
+    UriStream,
+    PipelineStream,
+}
+
+#[derive(Deserialize, Serialize, Clone, Copy, PartialEq, Debug, AsRefStr)]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[cfg_attr(feature = "sqlx", sqlx(type_name = "stream_status", rename_all = "snake_case"))]
+pub enum StreamStatus {
+    Online,
+    Offline,
+    Unknown,
 }
 
 impl Client {

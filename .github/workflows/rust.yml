@@ -12,15 +12,22 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      - uses: Swatinem/rust-cache@v1
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           default: true
           profile: minimal
       - name: Build
-        run: cargo build --verbose
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --all-features
       - name: Run tests
-        run: cargo test --verbose
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-features
 
   lint:
     runs-on: ubuntu-latest
@@ -28,6 +35,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      - uses: Swatinem/rust-cache@v1
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
@@ -35,6 +43,35 @@ jobs:
           profile: minimal
           components: clippy, rustfmt
       - name: Catch common mistakes
-        run: cargo clippy --tests -- -Dwarnings
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --tests --all-features -- -Dwarnings
       - name: Check formatting
-        run: cargo fmt -- --check
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: -- --check
+
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: Swatinem/rust-cache@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          default: true
+          profile: minimal
+          components: clippy, rustfmt
+      - name: Compile
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --tests
+      - name: Compile with all features
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --tests --all-features
