@@ -125,7 +125,14 @@ impl CameraRuntime {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum InputStreamRuntime {
-    File(InputFileStreamRuntime),
+    /// Non-Realtime stream from files in the Lumeo API. (e.g. saved clips)
+    LumeoFile(InputLumeoFileStreamRuntime),
+    /// Non-Realtime stream from files behind a URI (like `http`, `https` and `file`).
+    UriFile(InputUriFileStreamRuntime),
+    /// Despite the name, this currently represents any URI stream that should
+    /// be interpreted as realtime. Including `rtsp`, `http`, `https` and `file`.
+    /// Note that even if the stream isn't actually realtime,
+    /// it will be treated by billing as such.
     Rtsp(InputRtspStreamRuntime),
     WebRtc(InputWebRtcStreamRuntime),
 }
@@ -134,7 +141,16 @@ impl InputStreamRuntime {
     pub fn uri(&self) -> Option<&Url> {
         use InputStreamRuntime::*;
         match self {
-            File(InputFileStreamRuntime { uri, .. }) => Some(uri),
+            LumeoFile(_) => None,
+            UriFile(InputUriFileStreamRuntime { uris, .. }) => {
+                if let &[ref uri] = uris.as_slice() {
+                    Some(uri)
+                } else {
+                    // if there is more than one url, it's not clear which one should be returned,
+                    // so return None (as in the case where there is no url)
+                    None
+                }
+            }
             Rtsp(InputRtspStreamRuntime { uri, .. }) => Some(uri),
             WebRtc(_) => None,
         }
@@ -143,7 +159,8 @@ impl InputStreamRuntime {
     pub fn name(&self) -> Option<&str> {
         use InputStreamRuntime::*;
         match self {
-            File(InputFileStreamRuntime { name, .. }) => Some(name),
+            LumeoFile(InputLumeoFileStreamRuntime { name, .. }) => Some(name),
+            UriFile(InputUriFileStreamRuntime { name, .. }) => Some(name),
             Rtsp(InputRtspStreamRuntime { name, .. }) => Some(name),
             WebRtc(_) => None,
         }
@@ -189,13 +206,17 @@ pub struct InputWebRtcStreamRuntime {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct InputFileStreamRuntime {
-    /// File stream URI.
-    ///
-    /// Example: "file:///home/lumeo/file.mp4"
-    pub uri: Url,
-
+pub struct InputLumeoFileStreamRuntime {
+    /// Ids of lumeo files.
+    pub file_ids: Vec<Uuid>,
     /// Stream name.
+    pub name: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct InputUriFileStreamRuntime {
+    /// URLs like `http`, `https` or `file`.
+    pub uris: Vec<Url>,
     pub name: String,
 }
 
