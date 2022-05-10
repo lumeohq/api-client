@@ -3,6 +3,7 @@ use serde_with::skip_serializing_none;
 use strum::AsRefStr;
 use url::Url;
 use uuid::Uuid;
+use vec1::Vec1;
 
 use crate::pipeline::{
     resolution::Resolution,
@@ -125,7 +126,14 @@ impl CameraRuntime {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum InputStreamRuntime {
-    File(InputFileStreamRuntime),
+    /// Non-Realtime stream from URLs (e.g. `http`, `https`, and `file`)
+    UrlFile(InputUrlFileStreamRuntime),
+    /// Non-Realtime stream from files in the Lumeo API (`lumeo://files/<file_id>`. e.g. saved clips)
+    LumeoFile(InputLumeoFileStreamRuntime),
+    /// Despite the name, this currently represents any URI stream that should
+    /// be interpreted as realtime. Including `rtsp`, `http`, `https` and `file`.
+    /// Note that even if the stream isn't actually realtime,
+    /// it will be treated by billing as such.
     Rtsp(InputRtspStreamRuntime),
     WebRtc(InputWebRtcStreamRuntime),
 }
@@ -134,8 +142,13 @@ impl InputStreamRuntime {
     pub fn uri(&self) -> Option<&Url> {
         use InputStreamRuntime::*;
         match self {
-            File(InputFileStreamRuntime { uri, .. }) => Some(uri),
+            LumeoFile(_) => None,
             Rtsp(InputRtspStreamRuntime { uri, .. }) => Some(uri),
+            UrlFile(InputUrlFileStreamRuntime { urls, .. }) => match urls.as_slice() {
+                [url] => Some(url),
+                // For more than one it isn't clear which one to use, so choose none
+                _ => None,
+            },
             WebRtc(_) => None,
         }
     }
@@ -143,8 +156,9 @@ impl InputStreamRuntime {
     pub fn name(&self) -> Option<&str> {
         use InputStreamRuntime::*;
         match self {
-            File(InputFileStreamRuntime { name, .. }) => Some(name),
+            LumeoFile(InputLumeoFileStreamRuntime { name, .. }) => Some(name),
             Rtsp(InputRtspStreamRuntime { name, .. }) => Some(name),
+            UrlFile(InputUrlFileStreamRuntime { name, .. }) => Some(name),
             WebRtc(_) => None,
         }
     }
@@ -189,14 +203,21 @@ pub struct InputWebRtcStreamRuntime {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct InputFileStreamRuntime {
-    /// File stream URI.
-    ///
-    /// Example: "file:///home/lumeo/file.mp4"
-    pub uri: Url,
-
+pub struct InputUrlFileStreamRuntime {
     /// Stream name.
     pub name: String,
+    /// URLs like e.g. `http`, `https` or `file`.
+    /// Always has at least one element.
+    pub urls: Vec1<Url>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct InputLumeoFileStreamRuntime {
+    /// Stream name.
+    pub name: String,
+    /// Lumeo file ids.
+    /// Alaways has at least one element.
+    pub file_ids: Vec1<Uuid>,
 }
 
 // FIXME: replace manual deserialization with
