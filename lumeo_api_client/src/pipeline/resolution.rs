@@ -5,7 +5,7 @@ use serde::{
     ser::{Serialize, Serializer},
 };
 
-#[derive(Default, Debug, Clone, PartialEq)]
+#[derive(Default, Debug, Clone, Eq, PartialEq)]
 pub struct Resolution {
     pub width: u32,
     pub height: u32,

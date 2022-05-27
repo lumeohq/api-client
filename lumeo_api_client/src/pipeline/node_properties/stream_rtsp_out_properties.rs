@@ -2,13 +2,13 @@ use serde::{Deserialize, Serialize};
 use url::Url;
 use uuid::Uuid;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct StreamRtspOutProperties {
     #[serde(flatten)]
     pub runtime: Option<StreamRtspOutRuntime>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct StreamRtspOutRuntime {
     /// RTSP stream URI.
     ///

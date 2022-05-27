@@ -11,7 +11,7 @@ pub struct TrackProperties {
     pub custom_properties: Option<TrackerCustomProperties>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Tracker {
     /// Discriminative Correlation Filter (DCF) tracker uses a correlation filter-based
@@ -27,7 +27,7 @@ pub enum Tracker {
     Iou,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum TrackerProfile {
     /// Loads the default tracker configuration
