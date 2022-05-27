@@ -35,7 +35,7 @@ pub struct Stream {
     #[serde(alias = "device_id")]
     pub gateway_id: Option<Uuid>,
     pub uri: Option<Url>,
-    pub status: String,
+    pub status: StreamStatus,
     pub camera_id: Option<Uuid>,
     pub deployment_id: Option<Uuid>,
     pub node: Option<String>,
