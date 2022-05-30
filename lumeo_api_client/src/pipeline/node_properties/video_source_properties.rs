@@ -216,7 +216,7 @@ pub struct InputLumeoFileStreamRuntime {
     /// Stream name.
     pub name: String,
     /// Lumeo file ids.
-    /// Alaways has at least one element.
+    /// Always has at least one element.
     pub file_ids: Vec1<Uuid>,
 }
 
