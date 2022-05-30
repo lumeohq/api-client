@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct FunctionProperties {
     pub code: String,
     #[serde(default)]
@@ -10,7 +10,7 @@ pub struct FunctionProperties {
     pub runtime: Option<FunctionRuntime>,
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct FunctionRuntime {
     /// Path to python module.
     ///

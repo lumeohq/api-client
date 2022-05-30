@@ -5,14 +5,14 @@ use serde_with::skip_serializing_none;
 
 use crate::pipeline::Resolution;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum FlipDirection {
     Horizontal,
     Vertical,
 }
 
-#[derive(Default, Debug, Clone, PartialEq)]
+#[derive(Default, Debug, Clone, Eq, PartialEq)]
 pub struct Crop {
     /// Number of pixels to crop from the top.
     pub top: usize,

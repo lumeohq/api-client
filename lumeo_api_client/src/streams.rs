@@ -35,7 +35,7 @@ pub struct Stream {
     #[serde(alias = "device_id")]
     pub gateway_id: Option<Uuid>,
     pub uri: Option<Url>,
-    pub status: String,
+    pub status: StreamStatus,
     pub camera_id: Option<Uuid>,
     pub deployment_id: Option<Uuid>,
     pub node: Option<String>,
@@ -43,7 +43,7 @@ pub struct Stream {
     pub snapshot_file_id: Option<Uuid>,
 }
 
-#[derive(Deserialize, Serialize, Clone, Copy, PartialEq, Debug, EnumString)]
+#[derive(Deserialize, Serialize, Clone, Copy, Eq, PartialEq, Debug, EnumString)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
@@ -54,7 +54,7 @@ pub enum StreamType {
     File,
 }
 
-#[derive(Deserialize, Serialize, Clone, Copy, PartialEq, Debug)]
+#[derive(Deserialize, Serialize, Clone, Copy, Eq, PartialEq, Debug)]
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[cfg_attr(feature = "sqlx", sqlx(type_name = "stream_source", rename_all = "snake_case"))]
@@ -64,7 +64,7 @@ pub enum StreamSource {
     PipelineStream,
 }
 
-#[derive(Deserialize, Serialize, Clone, Copy, PartialEq, Debug, AsRefStr)]
+#[derive(Deserialize, Serialize, Clone, Copy, Eq, PartialEq, Debug, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]

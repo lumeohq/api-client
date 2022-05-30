@@ -68,7 +68,7 @@ pub struct CommonVideoSourceProperties {
     pub crop: Option<Crop>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum RotateDirection {
     /// Rotate clockwise by 90 degrees.
@@ -100,7 +100,7 @@ pub struct InputStreamProperties {
     pub runtime: Option<InputStreamRuntime>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum CameraRuntime {
     Usb(UsbCameraRuntime),
@@ -123,7 +123,7 @@ impl CameraRuntime {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum InputStreamRuntime {
     /// Non-Realtime stream from URLs (e.g. `http`, `https`, and `file`)
@@ -164,7 +164,7 @@ impl InputStreamRuntime {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct UsbCameraRuntime {
     /// Local USB camera URI.
     ///
@@ -175,7 +175,7 @@ pub struct UsbCameraRuntime {
     pub name: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct CsiCameraRuntime {
     /// Local CSI camera URI.
     ///
@@ -186,7 +186,7 @@ pub struct CsiCameraRuntime {
     pub name: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct InputRtspStreamRuntime {
     /// RTSP stream URI.
     ///
@@ -197,12 +197,12 @@ pub struct InputRtspStreamRuntime {
     pub name: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct InputWebRtcStreamRuntime {
     // TODO: define how do we use WebRTC streams as inputs
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct InputUrlFileStreamRuntime {
     /// Stream name.
     pub name: String,
@@ -211,7 +211,7 @@ pub struct InputUrlFileStreamRuntime {
     pub urls: Vec1<Url>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct InputLumeoFileStreamRuntime {
     /// Stream name.
     pub name: String,

@@ -31,7 +31,7 @@ fn default_inference_interval() -> NonZeroU32 {
     NonZeroU32::new(1).unwrap()
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct ModelInferenceRuntime {
     /// Path to the inferencing node config.
     ///
