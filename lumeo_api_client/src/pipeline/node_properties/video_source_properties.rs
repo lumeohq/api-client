@@ -218,6 +218,8 @@ pub struct InputLumeoFileStreamRuntime {
     /// Lumeo file ids.
     /// Always has at least one element.
     pub file_ids: Vec1<Uuid>,
+    /// The first file URL. This value is set by lumeod.
+    pub first_file_url: Option<Url>,
 }
 
 // FIXME: replace manual deserialization with
