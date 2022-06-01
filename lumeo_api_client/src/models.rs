@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -26,7 +26,7 @@ pub struct Model {
     pub format: Format,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ModelInferenceConfig {
     pub net_scale_factor: f64,
     pub color_format: ModelColorFormat,
@@ -44,7 +44,7 @@ pub struct ModelInferenceConfig {
     /// Maps each class label (key) to the ModelClassAttributes set.
     /// Use "*" as key to specify global properties that should affect all the model classes.
     #[serde(default)]
-    pub class_attributes: Option<BTreeMap<String, ModelClassAttributes>>,
+    pub class_attributes: Option<HashMap<String, ModelClassAttributes>>,
 
     // Classifiers properties
     pub classifier_threshold: Option<f64>,
@@ -118,7 +118,7 @@ pub enum ModelInputOrder {
     NC,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ModelClassAttributes {
     pub min_inference_threshold: Option<f64>,
 
@@ -129,7 +129,7 @@ pub struct ModelClassAttributes {
     pub min_boxes: Option<i32>,
     pub dbscan_min_score: Option<f64>,
 
-    // ClusterMode Nms and DbscanNmsHibrid
+    // ClusterMode Nms and DbscanNmsHybrid
     pub nms_iou_threshold: Option<f64>,
 
     pub object_min_size: Option<Resolution>,
