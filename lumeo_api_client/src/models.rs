@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -44,7 +44,7 @@ pub struct ModelInferenceConfig {
     /// Maps each class label (key) to the ModelClassAttributes set.
     /// Use "*" as key to specify global properties that should affect all the model classes.
     #[serde(default)]
-    pub class_attributes: Option<BTreeMap<String, ModelClassAttributes>>,
+    pub class_attributes: Option<HashMap<String, ModelClassAttributes>>,
 
     // Classifiers properties
     pub classifier_threshold: Option<f64>,
