@@ -95,15 +95,15 @@ pub enum Format {
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "snake_case")]
 pub enum ModelColorFormat {
-    Rgb,
-    Bgr,
+    RGB,
+    BGR,
     Grayscale,
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "snake_case")]
 pub enum ModelNetworkMode {
     Float32,
     Int8,
@@ -111,11 +111,11 @@ pub enum ModelNetworkMode {
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "snake_case")]
 pub enum ModelInputOrder {
-    Nc,
-    Nchw,
-    Nhcw,
+    NCHW,
+    NHWC,
+    NC,
 }
 
 #[derive(Debug, Deserialize)]
@@ -139,12 +139,12 @@ pub struct ModelClassAttributes {
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "snake_case")]
 pub enum ClusterMode {
     OpenCvGroupRectangles,
-    DbScan,
+    Dbscan,
     Nms,
-    DbScanNmsHybrid,
+    DbscanNmsHibrid,
     NoClustering,
 }
 
@@ -156,62 +156,5 @@ impl Client {
 
     pub async fn read_marketplace_model(&self, model_id: Uuid) -> Result<Model> {
         self.get(&format!("/v1/marketplace/models/{model_id}"), None::<&()>).await
-    }
-}
-
-#[cfg(test)]
-mod tests {
-
-    use serde_json::json;
-
-    use super::Model;
-
-    #[test]
-    fn try_to_deserialize_model() {
-        let model_value = json!({
-            "id": "4ce404f3-ec77-485b-8970-86becbde5f38",
-            "created_at": "2022-05-27T13:26:35.293670Z",
-            "updated_at": "2022-05-27T13:26:35.293670Z",
-            "application_id": "c954e9ac-c6a8-4409-b6d0-f98abe1c8f67",
-            "name": "9ffa9185-7453-4fb2-aa6a-3105a6ae83a8",
-            "description": "string",
-            "weights_file_url": "http://example.com",
-            "metadata_file_url": "http://example.com",
-            "labels_file_url": "http://example.com",
-            "parameters": {
-                "a": "b"
-            },
-            "gallery_img_url": null,
-            "inference_config": {
-                "net_scale_factor": 3.25_f64,
-                "color_format": "rgb",
-                "network_mode": "float32",
-                "infer_dims": "dims",
-                "input_order": "nchw",
-                "input_blob_name": "blob_name",
-                "output_blob_names": ["a","b","c"],
-                "tlt_model_key": "model_key",
-                "filter_out_class_ids": ["1","2","3"],
-                "class_attributes": {
-                    "name": {
-                        "min_inference_threshold": 3.45_f64,
-                        "cluster_mode": "dbscan",
-                        "eps": 3.56_f64,
-                        "min_boxes": 3_i32,
-                        "dbscan_min_score": 3.4_f64,
-                        "nms_iou_threshold": 4.15_f64,
-                        "object_min_size": "50x30",
-                        "object_max_size": "45x45",
-                        "top_k": 4_i32
-                    }
-                },
-                "classifier_threshold": 3.25_f64
-            },
-            "capability": "detection",
-            "architecture": "yolov4",
-            "format": "caffe"
-        });
-
-        let _ = serde_json::from_value::<Model>(model_value).unwrap();
     }
 }
