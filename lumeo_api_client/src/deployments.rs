@@ -96,10 +96,10 @@ pub struct ListParams {
     pub states: Vec<State>,
     /// Filter: Include configuration to response
     #[serde(default)]
-    with_configuration: bool,
+    pub with_configuration: bool,
     /// Filter: Include definition to response
     #[serde(default)]
-    with_definition: bool,
+    pub with_definition: bool,
 }
 
 impl Client {
