@@ -26,7 +26,7 @@ pub struct Model {
     pub format: Format,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ModelInferenceConfig {
     pub net_scale_factor: f64,
     pub color_format: ModelColorFormat,
@@ -118,7 +118,7 @@ pub enum ModelInputOrder {
     NC,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ModelClassAttributes {
     pub min_inference_threshold: Option<f64>,
 
@@ -129,7 +129,7 @@ pub struct ModelClassAttributes {
     pub min_boxes: Option<i32>,
     pub dbscan_min_score: Option<f64>,
 
-    // ClusterMode Nms and DbscanNmsHibrid
+    // ClusterMode Nms and DbscanNmsHybrid
     pub nms_iou_threshold: Option<f64>,
 
     pub object_min_size: Option<Resolution>,
