@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use strum::Display;
+use thiserror::Error;
 use url::Url;
 use uuid::Uuid;
 
@@ -51,6 +52,44 @@ pub struct File {
     pub stream_id: Option<Uuid>,
     pub data_url: Option<Url>,
     pub metadata_url: Option<Url>,
+}
+
+impl File {
+    pub fn stream_url(&self) -> Url {
+        create_lumeo_file_url(self.id)
+    }
+}
+
+pub fn create_lumeo_file_url(file_id: Uuid) -> Url {
+    format!("lumeo://{file_id}").parse().unwrap_or_else(|error| {
+        unreachable!("Failed to parse generated Lumeo URL with error: {error}")
+    })
+}
+
+pub fn parse_file_id_from_lumeo_url(url: &Url) -> std::result::Result<Uuid, FileUrlError> {
+    if url.scheme() != "lumeo" {
+        return Err(FileUrlError::InvalidScheme(url.scheme().into()));
+    }
+
+    let file_id = url.host_str().ok_or(FileUrlError::MissingHost)?;
+
+    if url.as_str().len() != ("lumeo://".len() + file_id.len()) {
+        return Err(FileUrlError::InvalidLength);
+    }
+
+    Uuid::parse_str(file_id).map_err(|_| FileUrlError::InvalidUuid(file_id.into()))
+}
+
+#[derive(Debug, Error, PartialEq, Eq)]
+pub enum FileUrlError {
+    #[error("Invalid scheme, expected 'lumeo', got '{0}'")]
+    InvalidScheme(String),
+    #[error("Missing host")]
+    MissingHost,
+    #[error("Invalid length")]
+    InvalidLength,
+    #[error("Invalid UUID: '{0}'")]
+    InvalidUuid(String),
 }
 
 #[derive(Debug, Default, Serialize)]
@@ -120,5 +159,74 @@ impl Client {
     pub async fn delete_files(&self, params: &DeleteParams) -> Result<()> {
         let application_id = self.application_id()?;
         self.delete(&format!("/v1/apps/{application_id}/files"), Some(params)).await
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn should_create_lumeo_file_url_from_id() {
+        let file_id =
+            Uuid::parse_str("f65c8128-e25a-11ec-b486-efa3b8212d7f").expect("Failed to parse UUID");
+        let url = create_lumeo_file_url(file_id);
+
+        assert_eq!("lumeo://f65c8128-e25a-11ec-b486-efa3b8212d7f", url.as_str());
+    }
+
+    #[test]
+    fn should_parse_lumeo_file_url() {
+        let url = Url::parse("lumeo://f65c8128-e25a-11ec-b486-efa3b8212d7f")
+            .expect("Failed to parse URL");
+
+        let file_id = parse_file_id_from_lumeo_url(&url).expect("Failed to parse lumeo file URL");
+        let expected_file_id =
+            Uuid::parse_str("f65c8128-e25a-11ec-b486-efa3b8212d7f").expect("Failed to parse UUID");
+
+        assert_eq!(expected_file_id, file_id);
+    }
+
+    #[test]
+    fn should_not_parse_lumeo_file_url_with_query() {
+        let url = Url::parse("lumeo://f65c8128-e25a-11ec-b486-efa3b8212d7f?key=value")
+            .expect("Failed to parse URL");
+
+        assert_eq!(Err(FileUrlError::InvalidLength), parse_file_id_from_lumeo_url(&url));
+    }
+
+    #[test]
+    fn should_not_parse_lumeo_file_url_without_host() {
+        let url = Url::parse("lumeo://").expect("Failed to parse URL");
+
+        assert_eq!(Err(FileUrlError::MissingHost), parse_file_id_from_lumeo_url(&url));
+    }
+
+    #[test]
+    fn should_not_parse_lumeo_file_url_with_incorrect_scheme() {
+        let url = Url::parse("http://example.com").expect("Failed to parse URL");
+
+        assert_eq!(
+            Err(FileUrlError::InvalidScheme("http".into())),
+            parse_file_id_from_lumeo_url(&url)
+        );
+    }
+
+    #[test]
+    fn should_not_parse_lumeo_file_url_with_invalid_uuid() {
+        let invalid_uuid = {
+            let valid_uuid = "f65c8128-e25a-11ec-b486-efa3b8212d7f";
+            Uuid::parse_str(valid_uuid).expect("Failed to parse valid UUID");
+            valid_uuid.replace('f', "g")
+        };
+        Uuid::parse_str(&invalid_uuid).expect_err("UUID was not invalid");
+
+        let url = Url::parse("lumeo://g65c8128-e25a-11ec-b486-efa3b8212d7f")
+            .expect("Failed to parse URL");
+
+        assert_eq!(
+            Err(FileUrlError::InvalidUuid("g65c8128-e25a-11ec-b486-efa3b8212d7f".into())),
+            parse_file_id_from_lumeo_url(&url)
+        );
     }
 }
