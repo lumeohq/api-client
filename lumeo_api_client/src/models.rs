@@ -121,6 +121,7 @@ pub enum ModelInputOrder {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ModelClassAttributes {
     pub min_inference_threshold: Option<f64>,
+    pub post_cluster_threshold: Option<f64>,
 
     pub cluster_mode: Option<ClusterMode>,
 
@@ -195,6 +196,7 @@ mod tests {
                 "class_attributes": {
                     "name": {
                         "min_inference_threshold": 3.45_f64,
+                        "post_cluster_threshold": 4.45_f64,
                         "cluster_mode": "dbscan",
                         "eps": 3.56_f64,
                         "min_boxes": 3_i32,
