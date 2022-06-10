@@ -17,6 +17,7 @@ pub struct CommonClipProperties {
     pub min_duration: Option<u64>,
     pub max_duration: Option<u64>,
     pub max_size: Option<u64>,
+    pub prebuffer_interval: Option<u64>,
     pub retention_duration: Option<u64>,
     pub webhook_url: Option<Url>,
     pub trigger: Option<String>,
