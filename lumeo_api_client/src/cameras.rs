@@ -56,14 +56,6 @@ pub struct Camera {
     pub snapshot_file_id: Option<Uuid>,
 }
 
-#[derive(Debug, Deserialize)]
-pub struct DevicesCamera {
-    pub id: Uuid,
-    #[serde(alias = "device_id")]
-    pub gateway_id: Uuid,
-    pub camera_id: Uuid,
-}
-
 #[derive(Debug, Serialize)]
 pub struct NewLinkedCamera {
     pub camera_id: Uuid,
