@@ -20,7 +20,6 @@ pub struct Deployment {
     pub updated_at: DateTime<Utc>,
     pub name: String,
     pub pipeline_id: Uuid,
-    #[serde(alias = "device_id")]
     pub gateway_id: Uuid,
     pub state: State,
     #[serde(deserialize_with = "deserialize_pipeline_def")]
@@ -35,7 +34,6 @@ pub struct ListDeploymentElement {
     pub updated_at: DateTime<Utc>,
     pub name: String,
     pub pipeline_id: Uuid,
-    #[serde(alias = "device_id")]
     pub gateway_id: Uuid,
     pub state: State,
     #[serde(deserialize_with = "deserialize_pipeline_def_optionally")]
@@ -46,7 +44,6 @@ pub struct ListDeploymentElement {
 #[derive(Serialize)]
 pub struct NewDeployment {
     pub pipeline_id: Uuid,
-    #[serde(rename = "device_id")]
     pub gateway_id: Uuid,
     #[serde(flatten)]
     pub data: DeploymentData,
@@ -89,8 +86,7 @@ pub struct ListParams {
     pub updated_ts_until: Option<DateTime<Utc>>,
     /// Filter: Pipeline ID(s)
     pub pipeline_ids: Vec<Uuid>,
-    /// Filter: Device ID(s)
-    #[serde(rename = "device_ids")]
+    /// Filter: Gateway ID(s)
     pub gateway_ids: Vec<Uuid>,
     /// Filter: State(s)
     pub states: Vec<State>,
@@ -242,7 +238,7 @@ mod tests {
             "updated_at": timestamp,
             "name": "My deployment",
             "pipeline_id": Uuid::nil(),
-            "device_id": Uuid::nil(),
+            "gateway_id": Uuid::nil(),
             "state": State::Stopped,
             // "Inlined" pipeline definition (array, not string)
             "definition": pipeline_json,
@@ -256,7 +252,7 @@ mod tests {
             "updated_at": timestamp,
             "name": "My deployment",
             "pipeline_id": Uuid::nil(),
-            "device_id": Uuid::nil(),
+            "gateway_id": Uuid::nil(),
             "state": State::Stopped,
             // Stringified pipeline definition
             "definition": pipeline_json_s,
@@ -280,7 +276,7 @@ mod tests {
             "updated_at": timestamp,
             "name": "My deployment",
             "pipeline_id": Uuid::nil(),
-            "device_id": Uuid::nil(),
+            "gateway_id": Uuid::nil(),
             "state": State::Stopped,
             "definition": null,
             "configuration": configuration_value
