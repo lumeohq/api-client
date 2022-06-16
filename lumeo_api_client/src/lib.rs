@@ -6,6 +6,7 @@ use serde::{de::DeserializeOwned, Serialize};
 use uuid::Uuid;
 
 pub mod apps;
+pub mod auth;
 pub mod cameras;
 pub mod deployments;
 pub mod discovery_requests;
@@ -25,6 +26,7 @@ type Callback = Box<dyn Fn(&Error) + Send + Sync + 'static>;
 pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 const DEFAULT_TIMEOUT: Duration = Duration::from_secs(10);
+const DEFAULT_LOGIN_TIMEOUT: Duration = Duration::from_secs(30);
 
 pub struct Client {
     http_client: reqwest::Client,
