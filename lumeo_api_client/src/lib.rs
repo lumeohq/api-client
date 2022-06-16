@@ -41,13 +41,17 @@ impl Client {
         auth_token: String,
         application_id: Option<Uuid>,
         gateway_id: Option<Uuid>,
+        user_agent: Option<&str>,
     ) -> reqwest::Result<Self> {
         Ok(Self::with_http_client(
             base_url,
             auth_token,
             application_id,
             gateway_id,
-            reqwest::Client::builder().timeout(DEFAULT_TIMEOUT).build()?,
+            reqwest::Client::builder()
+                .timeout(DEFAULT_TIMEOUT)
+                .user_agent(user_agent.unwrap_or("Lumeo api-client"))
+                .build()?,
         ))
     }
 
