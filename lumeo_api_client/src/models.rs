@@ -35,6 +35,7 @@ pub struct ModelInferenceConfig {
     pub input_order: Option<ModelInputOrder>,
     pub input_blob_name: Option<String>,
     pub output_blob_names: Option<Vec<String>>,
+    pub cluster_mode: Option<ClusterMode>,
 
     pub tlt_model_key: Option<String>,
 
@@ -123,8 +124,6 @@ pub struct ModelClassAttributes {
     pub min_inference_threshold: Option<f64>,
     pub post_cluster_threshold: Option<f64>,
 
-    pub cluster_mode: Option<ClusterMode>,
-
     //  ClusterMode Dbscan
     pub eps: Option<f64>,
     pub min_boxes: Option<i32>,
@@ -193,11 +192,11 @@ mod tests {
                 "output_blob_names": ["a","b","c"],
                 "tlt_model_key": "model_key",
                 "filter_out_class_ids": ["1","2","3"],
+                "cluster_mode": "dbscan",
                 "class_attributes": {
                     "name": {
                         "min_inference_threshold": 3.45_f64,
                         "post_cluster_threshold": 4.45_f64,
-                        "cluster_mode": "dbscan",
                         "eps": 3.56_f64,
                         "min_boxes": 3_i32,
                         "dbscan_min_score": 3.4_f64,
