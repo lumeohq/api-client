@@ -83,4 +83,14 @@ impl Client {
         let application_id = self.application_id()?;
         self.get(&format!("/v1/apps/{application_id}/streams/{stream_id}"), None::<&()>).await
     }
+
+    pub async fn update_stream(&self, stream_id: Uuid, stream: &StreamData) -> Result<Stream> {
+        let application_id = self.application_id()?;
+        self.put(&format!("/v1/apps/{application_id}/streams/{stream_id}"), stream).await
+    }
+
+    pub async fn delete_stream(&self, stream_id: Uuid) -> Result<()> {
+        let application_id = self.application_id()?;
+        self.delete(&format!("/v1/apps/{application_id}/streams/{stream_id}"), None::<&()>).await
+    }
 }
