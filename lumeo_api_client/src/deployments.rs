@@ -26,21 +26,6 @@ pub struct Deployment {
     pub definition: Pipeline,
 }
 
-#[skip_serializing_none]
-#[derive(Debug, Deserialize)]
-pub struct ListDeploymentElement {
-    pub id: Uuid,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
-    pub name: String,
-    pub pipeline_id: Uuid,
-    pub gateway_id: Uuid,
-    pub state: State,
-    #[serde(deserialize_with = "deserialize_pipeline_def_optionally")]
-    pub definition: Option<Pipeline>,
-    pub configuration: Option<DeploymentConfiguration>,
-}
-
 #[derive(Serialize)]
 pub struct NewDeployment {
     pub pipeline_id: Uuid,
@@ -90,16 +75,10 @@ pub struct ListParams {
     pub gateway_ids: Vec<Uuid>,
     /// Filter: State(s)
     pub states: Vec<State>,
-    /// Filter: Include configuration to response
-    #[serde(default)]
-    pub with_configuration: bool,
-    /// Filter: Include definition to response
-    #[serde(default)]
-    pub with_definition: bool,
 }
 
 impl Client {
-    pub async fn get_deployments(&self, filter: &ListParams) -> Result<Vec<ListDeploymentElement>> {
+    pub async fn get_deployments(&self, filter: &ListParams) -> Result<Vec<Deployment>> {
         let application_id = self.application_id()?;
         let path = format!("/v1/apps/{application_id}/deployments");
         self.get(&path, Some(&filter)).await
@@ -156,19 +135,17 @@ impl Client {
     }
 }
 
-fn deserialize_pipeline_def_optionally<'de, D>(
-    deserializer: D,
-) -> Result<Option<Pipeline>, D::Error>
+fn deserialize_pipeline_def<'de, D>(deserializer: D) -> Result<Pipeline, D::Error>
 where
     D: Deserializer<'de>,
 {
     struct PipelineVisitor;
 
     impl<'de> Visitor<'de> for PipelineVisitor {
-        type Value = Option<Pipeline>;
+        type Value = Pipeline;
 
         fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(f, "a possibly-stringified pipeline definition or null")
+            write!(f, "a possibly-stringified pipeline definition")
         }
 
         fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
@@ -178,30 +155,15 @@ where
             serde_json::from_str(v).map_err(de::Error::custom)
         }
 
-        fn visit_unit<E>(self) -> Result<Self::Value, E>
-        where
-            E: de::Error,
-        {
-            Ok(None)
-        }
-
         fn visit_seq<A>(self, seq: A) -> Result<Self::Value, A::Error>
         where
             A: de::SeqAccess<'de>,
         {
-            Pipeline::deserialize(SeqAccessDeserializer::new(seq)).map(Some)
+            Pipeline::deserialize(SeqAccessDeserializer::new(seq))
         }
     }
 
     deserializer.deserialize_any(PipelineVisitor)
-}
-
-fn deserialize_pipeline_def<'de, D>(deserializer: D) -> Result<Pipeline, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    deserialize_pipeline_def_optionally(deserializer)?
-        .ok_or_else(|| de::Error::custom("Pipeline definition is null"))
 }
 
 #[cfg(test)]
@@ -211,7 +173,8 @@ mod tests {
     use serde_json::json;
     use uuid::Uuid;
 
-    use super::{Deployment, DeploymentConfiguration, ListDeploymentElement, Pipeline, State};
+    use super::{Deployment, State};
+    use crate::pipeline::Pipeline;
 
     #[test]
     fn deserialize_deployment() {
@@ -259,35 +222,6 @@ mod tests {
         }))
         .unwrap();
         assert_eq_json(&deployment.definition, &pipeline);
-    }
-
-    #[test]
-    fn deserialize_list_deployment_element() {
-        let timestamp = Utc::now();
-        let configuration_value = json!({
-            "video1": {
-                "source_id": Uuid::nil(),
-                "source_type": "camera",
-            }
-        });
-        let deployment: ListDeploymentElement = serde_json::from_value(json!({
-            "id": Uuid::nil(),
-            "created_at": timestamp,
-            "updated_at": timestamp,
-            "name": "My deployment",
-            "pipeline_id": Uuid::nil(),
-            "gateway_id": Uuid::nil(),
-            "state": State::Stopped,
-            "definition": null,
-            "configuration": configuration_value
-        }))
-        .unwrap();
-        assert!(deployment.definition.is_none());
-
-        let configuration =
-            serde_json::from_value::<DeploymentConfiguration>(configuration_value).unwrap();
-
-        assert_eq!(deployment.configuration, Some(configuration));
     }
 
     fn assert_eq_json<T: Serialize>(a: &T, b: &T) {
