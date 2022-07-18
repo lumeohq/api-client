@@ -80,13 +80,13 @@ pub enum Architecture {
     YoloV4,
     YoloV5,
     #[serde(rename = "yolov2_tiny")]
-    #[cfg_attr(features = "sqlx", sqlx(rename = "yolov2_tiny"))]
+    #[cfg_attr(feature = "sqlx", sqlx(rename = "yolov2_tiny"))]
     YoloV2Tiny,
     #[serde(rename = "yolov3_tiny")]
-    #[cfg_attr(features = "sqlx", sqlx(rename = "yolov3_tiny"))]
+    #[cfg_attr(feature = "sqlx", sqlx(rename = "yolov3_tiny"))]
     YoloV3Tiny,
     #[serde(rename = "yolov4_tiny")]
-    #[cfg_attr(features = "sqlx", sqlx(rename = "yolov4_tiny"))]
+    #[cfg_attr(feature = "sqlx", sqlx(rename = "yolov4_tiny"))]
     YoloV4Tiny,
 }
 
