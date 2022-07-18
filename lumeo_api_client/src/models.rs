@@ -53,6 +53,8 @@ pub struct ModelInferenceConfig {
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[cfg_attr(feature = "sqlx", sqlx(type_name = "model_capability", rename_all = "lowercase"))]
 pub enum Capability {
     Classification,
     Detection,
@@ -63,6 +65,8 @@ pub enum Capability {
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[cfg_attr(feature = "sqlx", sqlx(type_name = "model_architecture", rename_all = "lowercase"))]
 pub enum Architecture {
     DetectNet,
     Frcnn,
@@ -85,6 +89,8 @@ pub enum Architecture {
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[cfg_attr(feature = "sqlx", sqlx(type_name = "model_format", rename_all = "lowercase"))]
 pub enum Format {
     Caffe,
     Etlt,
