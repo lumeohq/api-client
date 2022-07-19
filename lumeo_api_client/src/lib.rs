@@ -8,6 +8,7 @@ use uuid::Uuid;
 pub mod apps;
 pub mod auth;
 pub mod cameras;
+pub mod commands;
 pub mod deployments;
 pub mod discovery_requests;
 pub mod error;
