@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 use thiserror::Error;
 
 pub mod camera;
@@ -23,24 +24,48 @@ pub enum Message {
     Notification(Notification),
 }
 
+impl Message {
+    pub fn trace_headers(&self) -> Option<&TraceHeaders> {
+        match self {
+            Message::Request(Request { trace_headers, .. })
+            | Message::Notification(Notification { trace_headers, .. }) => trace_headers.as_ref(),
+        }
+    }
+}
+
 /// Request type
 ///
 /// Expect response from remote end
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Request {
     /// Request body
     pub body: Body,
     /// Response correlation string
     pub respond_to: String,
+    /// Trace headers used for distributed tracing.
+    pub trace_headers: Option<TraceHeaders>,
 }
 
 /// Notification
 ///
 /// Fire and forget packet
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Notification {
     /// Notification body
     pub body: Body,
+    /// Trace headers used for distributed tracing.
+    pub trace_headers: Option<TraceHeaders>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct TraceHeaders(pub Vec<(String, String)>);
+
+impl TraceHeaders {
+    pub fn as_iter_str(&self) -> impl Iterator<Item = (&str, &str)> {
+        self.0.iter().map(|(k, v)| (k.as_str(), v.as_str()))
+    }
 }
 
 /// API message body payloads
