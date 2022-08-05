@@ -6,7 +6,7 @@ use uuid::Uuid;
 use super::Client;
 use crate::Result;
 
-#[derive(Clone, Copy, Eq, PartialEq, Deserialize, Serialize, AsRefStr, EnumString)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize, Serialize, AsRefStr, EnumString)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum Severity {
