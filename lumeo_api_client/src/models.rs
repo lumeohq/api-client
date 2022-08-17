@@ -88,6 +88,7 @@ pub enum Architecture {
     #[serde(rename = "yolov4_tiny")]
     #[cfg_attr(feature = "sqlx", sqlx(rename = "yolov4_tiny"))]
     YoloV4Tiny,
+    Other,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -217,6 +218,7 @@ mod tests {
         assert_eq!(YoloV2Tiny, deserialize_json(json!("yolov2_tiny")));
         assert_eq!(YoloV3Tiny, deserialize_json(json!("yolov3_tiny")));
         assert_eq!(YoloV4Tiny, deserialize_json(json!("yolov4_tiny")));
+        assert_eq!(Other, deserialize_json(json!("other")));
     }
 
     #[test]
@@ -236,6 +238,7 @@ mod tests {
         assert_eq!(json!("yolov2_tiny"), serialize_json(YoloV2Tiny));
         assert_eq!(json!("yolov3_tiny"), serialize_json(YoloV3Tiny));
         assert_eq!(json!("yolov4_tiny"), serialize_json(YoloV4Tiny));
+        assert_eq!(json!("other"), serialize_json(Other));
     }
 
     #[test]
