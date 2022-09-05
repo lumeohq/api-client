@@ -222,7 +222,7 @@ impl Client {
         Ok(())
     }
 
-    pub fn request(
+    fn request(
         &self,
         method: Method,
         path: &str,
