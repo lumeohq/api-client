@@ -177,6 +177,11 @@ impl Client {
             request_builder = request_builder.json(body);
         }
 
+        if method == Method::POST && body.is_none() {
+            // See https://github.com/seanmonstar/reqwest/issues/838
+            request_builder = request_builder.header(header::CONTENT_LENGTH, 0)
+        }
+
         verify_response(request_builder.send().await, method, path)
             .await
             .map_err(|err| self.through_cb(err))?;
