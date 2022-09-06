@@ -31,7 +31,7 @@ impl Client {
     ) -> Result<()> {
         self.post_without_response_deserialization(
             &format!("/metrics/v1/gateways/{gateway_id}/video_source_metrics"),
-            metric,
+            Some(metric),
         )
         .await
     }

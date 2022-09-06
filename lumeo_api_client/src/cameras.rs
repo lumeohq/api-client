@@ -89,7 +89,7 @@ impl Client {
         let gateway_id = self.gateway_id()?;
         self.put_without_response_deserialization(
             &format!("/v1/apps/{application_id}/gateways/{gateway_id}/cameras_statuses"),
-            &cameras,
+            Some(&cameras),
         )
         .await
     }

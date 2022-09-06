@@ -100,7 +100,11 @@ impl Client {
         self.post_internal(path, body).await.map_err(|err| self.through_cb(err))
     }
 
-    pub async fn post_without_response_deserialization<R>(&self, path: &str, body: &R) -> Result<()>
+    pub async fn post_without_response_deserialization<R>(
+        &self,
+        path: &str,
+        body: Option<&R>,
+    ) -> Result<()>
     where
         R: Serialize,
     {
@@ -144,7 +148,11 @@ impl Client {
             .http_context(Method::PUT, path)
     }
 
-    pub async fn put_without_response_deserialization<R>(&self, path: &str, body: &R) -> Result<()>
+    pub async fn put_without_response_deserialization<R>(
+        &self,
+        path: &str,
+        body: Option<&R>,
+    ) -> Result<()>
     where
         R: Serialize,
     {
@@ -157,14 +165,24 @@ impl Client {
         &self,
         method: Method,
         path: &str,
-        body: &R,
+        body: Option<&R>,
     ) -> Result<()>
     where
         R: Serialize,
     {
-        let request_builder =
+        let mut request_builder =
             self.request(method.clone(), path, None).map_err(|err| self.through_cb(err))?;
-        verify_response(request_builder.json(body).send().await, method, path)
+
+        if let Some(body) = body {
+            request_builder = request_builder.json(body);
+        }
+
+        if method == Method::POST && body.is_none() {
+            // See https://github.com/seanmonstar/reqwest/issues/838
+            request_builder = request_builder.header(header::CONTENT_LENGTH, 0)
+        }
+
+        verify_response(request_builder.send().await, method, path)
             .await
             .map_err(|err| self.through_cb(err))?;
         Ok(())
@@ -209,7 +227,7 @@ impl Client {
         Ok(())
     }
 
-    pub fn request(
+    fn request(
         &self,
         method: Method,
         path: &str,

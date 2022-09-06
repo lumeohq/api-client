@@ -42,7 +42,7 @@ impl Client {
             &format!(
                 "/v1/apps/{application_id}/gateways/{gateway_id}/discovery_request/{request_id}"
             ),
-            data,
+            Some(data),
         )
         .await
     }

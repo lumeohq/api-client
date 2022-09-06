@@ -1,7 +1,6 @@
 use std::{collections::BTreeMap, fmt};
 
 use chrono::{DateTime, Utc};
-use reqwest::Method;
 use serde::{
     de::{self, value::SeqAccessDeserializer, Deserializer, Visitor},
     Deserialize, Serialize,
@@ -10,7 +9,7 @@ use serde_with::skip_serializing_none;
 use uuid::Uuid;
 
 use super::Client;
-use crate::{error::ResultExt, pipeline::Pipeline, Result};
+use crate::{pipeline::Pipeline, Result};
 
 #[skip_serializing_none]
 #[derive(Debug, Deserialize)]
@@ -123,15 +122,13 @@ impl Client {
     pub async fn start_deployment(&self, deployment_id: Uuid) -> Result<()> {
         let application_id = self.application_id()?;
         let path = format!("/v1/apps/{application_id}/deployments/{deployment_id}/start");
-        self.request(Method::POST, &path, None)?.send().await.http_context(Method::POST, &path)?;
-        Ok(())
+        self.post_without_response_deserialization(&path, None::<&()>).await
     }
 
     pub async fn stop_deployment(&self, deployment_id: Uuid) -> Result<()> {
         let application_id = self.application_id()?;
         let path = format!("/v1/apps/{application_id}/deployments/{deployment_id}/stop");
-        self.request(Method::POST, &path, None)?.send().await.http_context(Method::POST, &path)?;
-        Ok(())
+        self.post_without_response_deserialization(&path, None::<&()>).await
     }
 }
 
